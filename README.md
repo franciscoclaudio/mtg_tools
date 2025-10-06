@@ -1,58 +1,133 @@
-Ferramentas MTG (Magic: The Gathering)
-======================================
+# Ferramentas MTG - Multi-Deck Feature Branch
 
-Este repositório contém uma suíte de utilidades HTML e JavaScript customizadas para jogadores de Magic: The Gathering, com foco especial no arquétipo Amulet Titan do formato Modern.
+Este é um branch de desenvolvimento que adiciona suporte para rastreamento de múltiplos decks no Match Tracker.
 
-O projeto é acessado por meio de um único menu web, que unifica o acesso ao Tracker de Matchups e à Calculadora Hipergeométrica.
+## 🆕 Novidades Nesta Versão
 
-Acesso Rápido 🚀
----------------
+### Multi-Deck Match Tracker
+Agora você pode rastrear estatísticas para múltiplos decks simultaneamente, não apenas Amulet Titan!
 
-Acesse as ferramentas imediatamente, de qualquer dispositivo, através do GitHub Pages (o link abaixo):
+**Principais Recursos:**
+- **Múltiplos Decks**: Crie e gerencie estatísticas para quantos decks quiser
+- **Dados Separados**: Cada deck mantém suas próprias estatísticas e histórico de partidas
+- **Seleção Rápida**: Troque entre decks facilmente para ver estatísticas específicas
+- **Importação/Exportação**: Sistema melhorado que mantém os dados de todos os decks
+- **Retrocompatibilidade**: Importa dados antigos do Amulet Titan Tracker automaticamente
 
-[https://franciscoclaudio.github.io/mtg_tools/menu_mtg_ferramentas.html](https://franciscoclaudio.github.io/mtg_tools/Ferramentas_MTG.html)
+## 📁 Estrutura de Arquivos
 
-Estrutura do Projeto
---------------------
+```
+mtg_tools/
+├── Ferramentas_MTG.html          # Menu principal
+├── Multi_Deck_Tracker.html       # 🆕 Novo tracker multi-deck
+├── Amulet_tracker_4.0.html       # Tracker original (mantido)
+├── calculadora_mtg.html          # Calculadora hipergeométrica
+└── img/                          # Imagens de fundo
+```
 
-O repositório é composto por três arquivos HTML principais:
+## 🚀 Como Usar o Multi-Deck Tracker
 
-| Arquivo | Descrição |
-| :--- | :--- |
-| Ferramentas_MTG.html | A página inicial e o menu principal. Permite navegar entre as duas ferramentas. |
-| Amulet_tracker_4.0.html | O Match Tracker completo para monitorar seu winrate (WR) contra matchups específicos, ideal para jogadores de Amulet Titan. |
-| calculadora_mtg.html | Uma Calculadora Hipergeométrica para determinar as probabilidades de comprar uma ou mais cartas (outs) específicas em qualquer ponto do jogo. |
+### 1. Criar um Novo Deck
+- Abra `Multi_Deck_Tracker.html`
+- No seletor "Selecione seu Deck Atual", escolha "--- Criar Novo Deck ---"
+- Digite o nome do deck (ex: "Murktide Regent", "Yawgmoth")
+- Clique em "Criar Deck"
 
+### 2. Registrar Partidas
+- Selecione o deck que você está jogando no topo da página
+- Escolha o deck oponente
+- Registre os resultados de G1, G2 e G3
+- Clique em "Registrar Partida"
 
-Ferramentas
------------
+### 3. Visualizar Estatísticas
+- As estatísticas gerais mostram o desempenho do deck atualmente selecionado
+- Use o seletor "Estatísticas por Matchup" para ver como você se sai contra decks específicos
+- Troque de deck no topo para ver estatísticas de outros decks
 
-1. Amulet Titan Match Tracker (v4.0)
+### 4. Compartilhar Dados com Amigos
+- **Exportar**: Clique em "Exportar Dados" para baixar um arquivo `.txt` com todos os seus decks
+- **Importar**: Clique em "Importar Dados" para adicionar dados de amigos aos seus
 
-Este é um tracker de estatísticas desenvolvido especificamente para o baralho Amulet Titan. Ele permite que você:
+## 💾 Formato dos Dados
 
-* Registre o resultado de cada partida (vitória/derrota).
-* Armazene os dados no Local Storage do seu navegador.
-* Calcule o winrate geral e contra matchups específicos.
-* Importe e Exporte dados para backup.
+Os dados agora são estruturados por deck:
 
-2. Calculadora Hipergeométrica
+```json
+{
+  "Amulet Titan": [
+    {
+      "timestamp": "2025-01-15T10:30:00.000Z",
+      "deckProprio": "Amulet Titan",
+      "deckOponente": "Boros Energy",
+      "g1Result": "win",
+      "g2Result": "loss",
+      "g3Result": "win"
+    }
+  ],
+  "Murktide Regent": [
+    {
+      "timestamp": "2025-01-15T14:20:00.000Z",
+      "deckProprio": "Murktide Regent",
+      "deckOponente": "Living End",
+      "g1Result": "win",
+      "g2Result": "win",
+      "g3Result": "not_played"
+    }
+  ]
+}
+```
 
-Uma ferramenta essencial para avaliar a consistência de qualquer deck de MTG. Use-a para responder perguntas como:
+## 🔄 Migração de Dados Antigos
 
-* "Qual é a chance de eu ter Amulet of Vigor na minha mão inicial (opening hand)?"
-* "Qual é a chance de comprar um Primeval Titan no turno X, dada uma certa quantidade de compras?"
+Se você já usa o Amulet Titan Tracker:
 
-Como Utilizar (Localmente)
---------------------------
+1. Abra o tracker antigo (`Amulet_tracker_4.0.html`)
+2. Exporte seus dados
+3. Abra o novo Multi-Deck Tracker
+4. Importe o arquivo exportado
+5. Os dados serão automaticamente organizados sob "Amulet Titan"
 
-Para utilizar as ferramentas localmente (sem acesso à internet) ou para realizar testes:
+## 🧪 Status do Branch
 
-1. Clone ou baixe o repositório para o seu computador.
-2. Certifique-se de que os três arquivos HTML estão na mesma pasta.
-3. Abra o arquivo menu_mtg_ferramentas.html no seu navegador de preferência.
+**Branch:** `multi-deck-feature`  
+**Status:** Em Testes  
+**Versão:** 5.0-beta
 
-Licença
--------
+### Testado ✅
+- Criação de múltiplos decks
+- Registro de partidas
+- Cálculo de estatísticas
+- Export/Import de dados
+- Compatibilidade com navegadores modernos
 
-Este projeto é de uso pessoal, mas pode ser compartilhado ou adaptado. Por favor, mantenha a referência aos arquivos originais se for modificar e redistribuir.
+### A Fazer 🚧
+- [ ] Versão com Firebase (cloud sync)
+- [ ] Sistema de autenticação para múltiplos usuários
+- [ ] Gráficos de evolução de winrate ao longo do tempo
+- [ ] Comparação entre decks
+- [ ] Tags/categorias para decks (Tier 1, Tier 2, etc.)
+
+## 🤝 Uso Compartilhado Entre Amigos
+
+### Cenário Atual (Local Storage)
+Cada pessoa mantém seus próprios dados. Para compartilhar:
+- Exporte seu arquivo periodicamente
+- Compartilhe com amigos via WhatsApp/Discord/etc
+- Cada um importa o arquivo dos outros
+- Os dados são mesclados automaticamente
+
+### Próxima Versão (Firebase)
+Em desenvolvimento: sincronização em tempo real na nuvem para que todos vejam os dados de todos instantaneamente.
+
+## 🐛 Reportar Problemas
+
+Encontrou um bug? Abra uma issue no GitHub ou entre em contato.
+
+## 📝 Licença
+
+Uso pessoal e comunitário. Mantenha a referência aos autores originais ao modificar.
+
+---
+
+**Desenvolvido para a comunidade de Magic: The Gathering**  
+*Branch criado em: Janeiro 2025*
