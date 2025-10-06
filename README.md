@@ -26,6 +26,7 @@ mtg_tools/
 ```
 
 ## 🚀 Como Usar o Multi-Deck Tracker
+https://franciscoclaudio.github.io/mtg_tools/Ferramentas_MTG.html
 
 ### 1. Criar um Novo Deck
 - Abra `Multi_Deck_Tracker.html`
