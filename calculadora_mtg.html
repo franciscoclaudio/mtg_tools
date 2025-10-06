@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Hipergeometrica</title>
+    <style>
+        /* Cores Temáticas do Amulet Tracker: #27883d (Verde Principal), #a87e50 (Terracota/Terra), #3a2e22 (Fundo Escuro) */
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            color: #d8d8d8;
+            
+            /* Fundo sólido do body para garantir o tema escuro do tracker */
+            background-color: #3a2e22; 
+        }
+        .container {
+            max-width: 750px;
+            margin: 40px auto;
+            /* Fundo semi-transparente para dar destaque ao container */
+            background: rgba(30, 30, 30, 0.95); 
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+            border: 3px solid #a87e50; /* Borda Terracota */
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            
+            /* Fundo do Header: Solve the Equation */
+            background-image: url('https://www.artofmtg.com/wp-content/uploads/2021/04/Solve-the-Equation-Strixhaven-MtG-Art-1024x752.jpg');
+            background-size: cover;
+            background-position: center 30%; 
+            background-color: #27883d; /* Fallback */
+            padding: 15px;
+            border-radius: 8px;
+        }
+        h1, h2 {
+            color: #fff;
+            margin: 0;
+            /* Sombra no texto para garantir contraste sobre a imagem do header */
+            text-shadow: 1px 1px 3px #000;
+        }
+        h2 {
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+        /* Cor padrão dos títulos h4 fora da área de resultados */
+        h4 {
+            color: #a87e50;
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 5px;
+        }
+        form, .stats-section {
+            /* Fundo para o formulário */
+            background-color: #595959; 
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #737373;
+        }
+        label, .stats-item {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #d8d8d8; /* Cor de texto padrão */
+        }
+        input[type="number"], input[type="text"], select, button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border: 1px solid #27883d; /* Borda Verde */
+            box-sizing: border-box;
+            background-color: #f0f0f0;
+            color: #3a2e22;
+        }
+        button {
+            background-color: #27883d; /* Verde Principal */
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #329f4b;
+        }
+        
+        /* Estilos de Status */
+        #status { 
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-weight: bold;
+            background-color: #3a2e22;
+            border: 1px solid #737373;
+        }
+        .loading {
+            color: #ffd700;
+        }
+        .error {
+            color: #ff6347;
+        }
+        .success {
+            color: #27883d;
+        }
+        
+        /* ESTILO MELHORADO: Área de resultados com fundo de imagem (Eureka) */
+        #results {
+            border: 3px solid #a87e50; /* Borda Terracota forte para o resultado */
+            padding: 30px; /* Mais espaço interno */
+            font-size: 1.2em; /* Texto maior */
+            display: none; /* Inicia oculto */
+            font-weight: 500; /* Peso médio para o texto principal */
+
+            /* Fundo da área de resultados: Eureka */
+            /* REDUÇÃO DO OVERLAY: Opacidade de 0.75 para 0.60 */
+            background-image: linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('https://www.originalmagicart.store/cdn/shop/products/Eureka_800x.jpg?v=1605337593');
+            background-size: cover; 
+            background-position: center 50%;
+            background-color: #3a2e22; /* Fallback */
+            color: #fff; /* Texto branco */
+            /* Sombra reforçada para aumentar a nitidez */
+            text-shadow: 0 0 5px #000, 0 0 5px #000; 
+        }
+        /* Destaque para o título do resultado */
+        #results h4 {
+            color: #ffd700;
+            text-shadow: 1px 1px 3px #000;
+            margin-top: 0; /* Remove a margem superior padrão do h4 */
+        }
+        #results p strong {
+             color: #ffd700; /* Destaque a porcentagem em dourado */
+             font-weight: bold;
+        }
+        
+        /* Oculta elementos irrelevantes do Tracker */
+        #matchup-stats-display, #nova-matchup-container, .control-buttons {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Calculadora Hipergeométrica</h1>
+            <h2>Probabilidade de Abertura de Mãos (Magic: The Gathering)</h2>
+        </header>
+        
+        <form id="hypergeometricForm">
+            <label for="popSize">Cartas no deck:</label>
+            <input type="number" id="popSize" name="popSize" required><br>
+
+            <label for="sampleSize">Quantos draws:</label>
+            <input type="number" id="sampleSize" name="sampleSize" required><br>
+
+            <label for="successesInPop">Quantos Outs:</label>
+            <input type="number" id="successesInPop" name="successesInPop" required><br>
+
+            <label for="successesNeeded">Sucessos necessários:</label>
+            <input type="number" id="successesNeeded" name="successesNeeded" required><br>
+
+            <button type="button" onclick="runCalculations()">Calcular</button>
+        </form>
+
+        <div id="results" class="success">
+            </div>
+
+        <div id="status" class="loading">Pronto para o cálculo...</div>
+
+    </div>
+
+    <script>
+        // Funções de Cálculo (Mantidas do original)
+        function fat(x) {
+            let soma = 0;
+            for (let i = 0; i < x; i++) {
+                soma += Math.log(x - i);
+            }
+            return soma;
+        }
+
+        function escolhe(x, y) {
+            if (y < 0 || y > x) {
+                return -Infinity;
+            }
+            return fat(x) - fat(y) - fat(x - y);
+        }
+
+        function hypergeometric_log_prob(N, n, K, k) {
+            if (n - k > N - K) {
+                return -Infinity; 
+            }
+            const log_comb_K_k = escolhe(K, k);
+            const log_comb_NK_nk = escolhe(N - K, n - k);
+            const log_comb_N_n = escolhe(N, n);
+            return log_comb_K_k + log_comb_NK_nk - log_comb_N_n;
+        }
+
+        function runCalculations() {
+            const P = parseInt(document.getElementById('popSize').value);
+            const A = parseInt(document.getElementById('sampleSize').value);
+            const S = parseInt(document.getElementById('successesInPop').value);
+            const N = parseInt(document.getElementById('successesNeeded').value);
+            
+            const statusElement = document.getElementById('status');
+            const resultsElement = document.getElementById('results');
+            
+            // Validações básicas
+            if (isNaN(P) || isNaN(A) || isNaN(S) || isNaN(N) || P <= 0 || A <= 0 || S < 0 || N < 0 || A > P || S > P) {
+                statusElement.textContent = 'Erro: Verifique se todos os campos estão preenchidos corretamente e se os valores são válidos (Amostra e Outs não podem ser maiores que o Deck).';
+                statusElement.className = 'error';
+                resultsElement.style.display = 'none';
+                return;
+            }
+
+            statusElement.textContent = 'Calculando...';
+            statusElement.className = 'loading';
+            resultsElement.style.display = 'none';
+
+
+            let totalLogSum = -Infinity;
+            const maxSuccesses = Math.min(A, S); // O número máximo de sucessos que você pode tirar
+            const minSuccesses = N;
+            
+            // Array para guardar log-probabilidades exatas (para mostrar o 'exatamente N')
+            const Probabilidade_exata = new Array(maxSuccesses + 1).fill(-Infinity);
+
+            // Calcula a probabilidade de ter 'i' sucessos, onde i vai de minSuccesses até maxSuccesses
+            for (let i = 0; i <= maxSuccesses; i++) {
+                // A fórmula é hypergeometric_log_prob(N total, n draws, K outs, k successes)
+                const log_prob = hypergeometric_log_prob(P, A, S, i);
+                Probabilidade_exata[i] = log_prob;
+                
+                // Acumula a soma das probabilidades de Pelo Menos N
+                if (i >= N) {
+                    // Log-sum-exp para somar log-probabilidades (mais preciso)
+                    if (totalLogSum === -Infinity) {
+                         totalLogSum = log_prob;
+                     } else {
+                         totalLogSum = totalLogSum + Math.log(1 + Math.exp(log_prob - totalLogSum));
+                     }
+                }
+            }
+
+            const prob_pelo_menos_N = Math.exp(totalLogSum);
+            // Verifica se N está dentro do range de Probabilidade_exata
+            const prob_exata_N = (N <= maxSuccesses && N >= 0) ? Math.exp(Probabilidade_exata[N]) : 0;
+            
+            let html_temp = `<h4>Resultado do Cálculo</h4>`;
+            
+            html_temp += `<p>CHANCE DE PELO MENOS ${N} OUTS: <strong>${(100 * prob_pelo_menos_N).toFixed(5)}%</strong></p>`;
+            
+            if (prob_exata_N > 0) {
+                html_temp += `<p>CHANCE DE EXATAMENTE ${N} OUTS: <strong>${(100 * prob_exata_N).toFixed(5)}%</strong></p>`;
+            } else {
+                html_temp += `<p>CHANCE DE EXATAMENTE ${N} OUTS: <strong>0.00000%</strong> (Impossível com esses dados)</p>`;
+            }
+
+            resultsElement.innerHTML = html_temp;
+            resultsElement.style.display = 'block';
+
+            statusElement.textContent = 'Cálculo Concluído.';
+            statusElement.className = 'success';
+        }
+    </script>
+</body>
+</html>
