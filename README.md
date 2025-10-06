@@ -10,7 +10,7 @@ Acesso Rápido 🚀
 
 Acesse as ferramentas imediatamente, de qualquer dispositivo, através do GitHub Pages (o link abaixo):
 
-https://franciscoclaudio.github.io/mtg_tools/menu_mtg_ferramentas.html
+[https://franciscoclaudio.github.io/mtg_tools/menu_mtg_ferramentas.html](https://franciscoclaudio.github.io/mtg_tools/Ferramentas_MTG.html)
 
 Estrutura do Projeto
 --------------------
@@ -19,7 +19,7 @@ O repositório é composto por três arquivos HTML principais:
 
 | Arquivo | Descrição |
 | :--- | :--- |
-| menu_mtg_ferramentas.html | A página inicial e o menu principal. Permite navegar entre as duas ferramentas. |
+| Ferramentas_MTG.html | A página inicial e o menu principal. Permite navegar entre as duas ferramentas. |
 | Amulet_tracker_4.0.html | O Match Tracker completo para monitorar seu winrate (WR) contra matchups específicos, ideal para jogadores de Amulet Titan. |
 | calculadora_mtg.html | Uma Calculadora Hipergeométrica para determinar as probabilidades de comprar uma ou mais cartas (outs) específicas em qualquer ponto do jogo. |
 
