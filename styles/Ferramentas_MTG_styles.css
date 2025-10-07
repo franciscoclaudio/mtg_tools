@@ -1,8 +1,16 @@
+
+
+/* ============================================ */
+/* FERRAMENTAS_MTG_STYLES.CSS - VERSÃO FINAL */
+/* ============================================ */
+
+/* Cores Temáticas: #27883d (Verde Principal), #a87e50 (Terracota/Terra), #3a2e22 (Fundo Escuro) */
+
 body {
     font-family: 'Arial', sans-serif;
     margin: 0;
     color: #d8d8d8;
-    background-color: #3a2e22 !important; /* Marrom escuro - forçado com !important */
+    background-color: #3a2e22 !important;
 }
 
 .container {
@@ -14,6 +22,20 @@ body {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
     border: 3px solid #a87e50;
     text-align: center;
+    /* Animação de entrada */
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* Animação FadeIn */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 header {
@@ -86,4 +108,25 @@ footer {
     border-top: 1px dashed #737373;
     font-size: 0.9em;
     color: #a87e50;
+}
+
+/* Melhoria 1: Responsividade Mobile */
+@media (max-width: 768px) {
+    .container {
+        margin: 20px 15px;
+        padding: 20px;
+    }
+    
+    h1 {
+        font-size: 1.8em;
+    }
+    
+    h2 {
+        font-size: 1em;
+    }
+    
+    .menu-link {
+        font-size: 1.2em;
+        padding: 15px;
+    }
 }
