@@ -138,6 +138,109 @@
     </style>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Multi-Deck Match Tracker</h1>
+            <h2>Para Magic: The Gathering</h2>
+        </header>
+
+        <div id="user-management">
+            <h4>Seleção de Usuário</h4>
+            <label for="user-select">Selecione o Usuário:</label>
+            <select id="user-select"></select>
+            
+            <form id="user-form" style="margin-top: 15px;">
+                <label for="new-user-input">Novo Usuário:</label>
+                <input type="text" id="new-user-input" placeholder="Digite o nome do novo usuário" required>
+                <button type="submit">Criar Usuário</button>
+            </form>
+        </div>
+
+        <div id="deck-selection" style="margin-top: 20px;">
+            <h4>Selecione o Formato e o Deck Próprio</h4>
+            <label for="formato-select">Formato:</label>
+            <select id="formato-select">
+                <option value="Modern">Modern</option>
+                <option value="Pioneer">Pioneer</option>
+                <option value="Legacy">Legacy</option>
+                <option value="Standard">Standard</option>
+                <option value="Pauper">Pauper</option>
+            </select>
+            
+            <label for="deck-select">Seu Deck:</label>
+            <select id="deck-select">
+                <option value="">-- Selecione o Deck Próprio --</option>
+            </select>
+            
+            <label for="matchup-select">Filtrar Matchup (Opcional):</label>
+            <select id="matchup-select">
+                <option value="">-- Mostrar Todos os Matchups --</option>
+            </select>
+        </div>
+
+        <div class="data-display" id="data-display" style="display: none;">
+            <h4>Estatísticas</h4>
+            <div id="stats-display">Nenhum dado para exibir.</div>
+
+            <form id="matchup-form">
+                <h4>Registrar Nova Partida</h4>
+                
+                <label for="deck-oponente-select">Deck Oponente:</label>
+                <select id="deck-oponente-select" required>
+                    <option value="">-- Selecione o Deck Oponente --</option>
+                </select>
+
+                <div id="nova-matchup-container" style="display: none; margin-bottom: 15px;">
+                    <label for="nova-matchup-input">Nome do Novo Deck Oponente:</label>
+                    <input type="text" id="nova-matchup-input" placeholder="Ex: Grixis Delver">
+                </div>
+
+                <div class="results-container">
+                    <div class="select-wrapper">
+                        <label for="g1-result">Game 1:</label>
+                        <select id="g1-result" name="g1-result" required>
+                            <option value="win">Win (G1)</option>
+                            <option value="loss">Loss (G1)</option>
+                            <option value="draw">Draw (G1)</option>
+                        </select>
+                    </div>
+                    <div class="select-wrapper">
+                        <label for="g2-result">Game 2:</label>
+                        <select id="g2-result" name="g2-result" required>
+                            <option value="win">Win (G2)</option>
+                            <option value="loss">Loss (G2)</option>
+                            <option value="draw">Draw (G2)</option>
+                        </select>
+                    </div>
+                    <div class="select-wrapper">
+                        <label for="g3-result">Game 3:</label>
+                        <select id="g3-result" name="g3-result">
+                            <option value="not_played">N/J (G3)</option>
+                            <option value="win">Win (G3)</option>
+                            <option value="loss">Loss (G3)</option>
+                            <option value="draw">Draw (G3)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit">Adicionar Matchup</button>
+            </form>
+
+            <div id="historic-display"></div>
+        </div>
+        
+        <div class="import-export">
+            <h4>Importar / Exportar Dados do Deck Selecionado</h4>
+            <button onclick="document.getElementById('file-input').click()">Importar JSON do Deck</button>
+            <input type="file" id="file-input" accept=".json" style="display: none;">
+            <button id="export-button" onclick="exportData()">Exportar JSON do Deck</button>
+        </div>
+
+    </div>
+
     <script>
         // Configuração do Firebase
         // ATENÇÃO: Substitua os dados abaixo pelos da sua aplicação Firebase!
@@ -155,10 +258,11 @@
         const database = firebase.database();
 
         // Variáveis globais
-        let allMatches = {}; // Estrutura: {usuario: {deck: [{match}, {match}, ...]}}
+        // NOVA ESTRUTURA: {usuario: {formato: {deck: [{match}, {match}, ...]}}}
+        let allMatches = {}; 
         let selectedUser = null;
         const NOVA_MATCHUP_OPCAO = 'Novo Deck';
-        let currentFormat = 'Modern'; // Novo: Define o formato padrão
+        let currentFormat = 'Modern'; 
 
         // Elementos do DOM
         const userSelector = document.getElementById('user-select');
@@ -173,11 +277,10 @@
         const historicDiv = document.getElementById('historic-display');
         const displayDiv = document.getElementById('data-display');
         const fileInput = document.getElementById('file-input');
-        // Novo elemento DOM para o formato
         const formatoSelect = document.getElementById('formato-select');
 
 
-        // Metagames por Formato (LISTAS DE DECK ATUALIZADAS)
+        // Metagames por Formato (LISTAS DE DECK)
         const METAGAME_DECKS_BY_FORMAT = {
             'Modern': [
                 'Esper Goryo\'s', 'Tameshi Belcher', 'Boros Energy', 'Eldrazi Tron',
@@ -211,6 +314,7 @@
 
         function saveData() {
             if (selectedUser) {
+                // Salva todos os dados do usuário, incluindo todos os formatos
                 database.ref('users/' + selectedUser).set(allMatches[selectedUser])
                     .catch(error => console.error("Erro ao salvar dados:", error));
             }
@@ -238,9 +342,14 @@
             userManagementDiv.style.display = 'block';
         }
 
-        function popularDropdowns(matchData) {
+        function popularDropdowns() {
+            // matchData: {formato: {deck: [...]}}
+            const matchData = allMatches[selectedUser]; 
+            // formatData: {deck: [...]}
+            const formatData = matchData ? matchData[currentFormat] : null;
+
             // Se não houver dados ou usuário selecionado, esconde tudo
-            if (!matchData || !selectedUser) {
+            if (!selectedUser || !formatData) {
                 deckSelector.innerHTML = '<option value="">-- Selecione o Deck Próprio --</option>';
                 deckOponenteSelect.innerHTML = '<option value="">-- Selecione o Deck Oponente --</option>';
                 matchupSelect.innerHTML = '<option value="">-- Selecione o Matchup --</option>';
@@ -249,7 +358,7 @@
             }
 
             // 1. Popula o Seletor de Deck Próprio
-            const decks = Object.keys(matchData);
+            const decks = Object.keys(formatData); // Pega decks dentro do formato
             deckSelector.innerHTML = '<option value="">-- Selecione o Deck Próprio --</option>';
             decks.forEach(deck => {
                 const option = document.createElement('option');
@@ -275,10 +384,12 @@
                     deckOponenteSelect.appendChild(option);
                 }
             });
-            // 3. Popula o Seletor de Matchup
-            const matchups = [...new Set(matchData[selectedDeck] ? matchData[selectedDeck].map(m => m.deckOponente) : [])];
+            deckOponenteSelect.innerHTML += `<option value="${NOVA_MATCHUP_OPCAO}">-- ${NOVA_MATCHUP_OPCAO} --</option>`;
 
-            matchupSelect.innerHTML = '<option value="">-- Selecione o Matchup --</option>';
+            // 3. Popula o Seletor de Matchup
+            const matchups = [...new Set(formatData[selectedDeck] ? formatData[selectedDeck].map(m => m.deckOponente) : [])];
+
+            matchupSelect.innerHTML = '<option value="">-- Mostrar Todos os Matchups --</option>';
             matchups.sort().forEach(matchup => {
                 const option = document.createElement('option');
                 option.value = matchup;
@@ -292,13 +403,16 @@
 
         function updateStatsDisplay(matchup) {
             const selectedDeck = deckSelector.value;
-            if (!selectedUser || !selectedDeck || !allMatches[selectedUser][selectedDeck]) {
+            const formatData = allMatches[selectedUser] ? allMatches[selectedUser][currentFormat] : null;
+
+            // Navega para a nova estrutura: allMatches[selectedUser][currentFormat][selectedDeck]
+            if (!selectedUser || !selectedDeck || !formatData || !formatData[selectedDeck]) {
                 statsDiv.innerHTML = '<p>Nenhum dado para exibir.</p>';
                 historicDiv.innerHTML = '';
                 return;
             }
 
-            let matches = allMatches[selectedUser][selectedDeck];
+            let matches = formatData[selectedDeck];
             if (matchup) {
                 matches = matches.filter(m => m.deckOponente === matchup);
                 historicDiv.innerHTML = `<h4>Histórico contra ${matchup}</h4>`;
@@ -355,6 +469,7 @@
             `;
 
             // Exibir Histórico
+            historicDiv.innerHTML = historicDiv.innerHTML.replace('</h4>', ' (Últimas 10)</h4>'); // Ajusta o título
             matches.reverse().slice(0, 10).forEach(match => {
                 const date = new Date(match.timestamp).toLocaleString('pt-BR');
                 const g1Class = match.g1Result;
@@ -385,18 +500,24 @@
             if (!allMatches[selectedUser]) {
                 allMatches[selectedUser] = {};
             }
+            // Inicializa a chave do formato se não existir
+            if (!allMatches[selectedUser][currentFormat]) { 
+                allMatches[selectedUser][currentFormat] = {};
+            }
+
             const deckKey = newMatch.deckProprio;
             const matchupKey = newMatch.deckOponente;
 
-            if (!allMatches[selectedUser][deckKey]) {
-                allMatches[selectedUser][deckKey] = [];
+            // Navega para a nova estrutura: allMatches[selectedUser][currentFormat][deckKey]
+            if (!allMatches[selectedUser][currentFormat][deckKey]) {
+                allMatches[selectedUser][currentFormat][deckKey] = [];
             }
 
-            allMatches[selectedUser][deckKey].push(newMatch);
+            allMatches[selectedUser][currentFormat][deckKey].push(newMatch);
             saveData();
             
             // Atualiza os dropdowns para incluir o novo deck/matchup
-            popularDropdowns(allMatches[selectedUser]); 
+            popularDropdowns(); 
             
             // Atualiza as estatísticas
             updateStatsDisplay(matchupKey);
@@ -405,15 +526,16 @@
         function deleteMatch(e) {
             const timestamp = e.target.getAttribute('data-timestamp');
             const deckKey = deckSelector.value;
+            const formatData = allMatches[selectedUser][currentFormat]; // Obtém o objeto do formato
             
             if (confirm("Tem certeza que deseja deletar esta partida?")) {
-                let matches = allMatches[selectedUser][deckKey];
+                let matches = formatData[deckKey];
                 const initialLength = matches.length;
                 
-                // Filtra e remove a partida com o timestamp correspondente
-                allMatches[selectedUser][deckKey] = matches.filter(match => match.timestamp !== timestamp);
+                // Filtra e remove a partida com o timestamp correspondente (alterando a estrutura aninhada)
+                allMatches[selectedUser][currentFormat][deckKey] = matches.filter(match => match.timestamp !== timestamp);
 
-                if (allMatches[selectedUser][deckKey].length === initialLength) {
+                if (allMatches[selectedUser][currentFormat][deckKey].length === initialLength) {
                      alert("Erro: Partida não encontrada para deleção.");
                      return;
                 }
@@ -435,23 +557,24 @@
                     const importedData = JSON.parse(e.target.result);
                     
                     if (selectedUser) {
-                        // Verifica se o JSON importado é um único deck ou a estrutura completa
                         const deckName = Object.keys(importedData)[0];
                         
                         if (Array.isArray(importedData[deckName])) {
-                            // Estrutura de importação de um único deck (e.g., {"Amulet Titan": [...]})
                             
-                            // Inicializa o nó do usuário se não existir
                             if (!allMatches[selectedUser]) {
                                 allMatches[selectedUser] = {};
                             }
+                            // Inicializa o formato atual se não existir
+                            if (!allMatches[selectedUser][currentFormat]) { 
+                                allMatches[selectedUser][currentFormat] = {};
+                            }
 
-                            // Adiciona/Substitui o deck no objeto do usuário
-                            allMatches[selectedUser][deckName] = importedData[deckName];
+                            // Adiciona/Substitui o deck no objeto do usuário sob o FORMATO ATUAL
+                            allMatches[selectedUser][currentFormat][deckName] = importedData[deckName];
                             
                             saveData();
-                            alert(`Dados do deck "${deckName}" importados com sucesso para o usuário ${selectedUser}!`);
-                            popularDropdowns(allMatches[selectedUser]);
+                            alert(`Dados do deck "${deckName}" importados com sucesso para o usuário ${selectedUser} no formato ${currentFormat}!`);
+                            popularDropdowns();
                             deckSelector.value = deckName;
                             updateStatsDisplay(null);
                         } else {
@@ -468,6 +591,37 @@
             reader.readAsText(file);
         }
 
+        function exportData() {
+            const selectedDeck = deckSelector.value;
+            if (!selectedDeck || !selectedUser) {
+                alert("Selecione um usuário e um deck para exportar.");
+                return;
+            }
+            
+            // Lê do formato atual
+            const deckData = allMatches[selectedUser][currentFormat] ? allMatches[selectedUser][currentFormat][selectedDeck] : null;
+
+            if (!deckData || deckData.length === 0) {
+                alert(`O deck "${selectedDeck}" não possui dados para exportar.`);
+                return;
+            }
+
+            const dataToExport = {};
+            dataToExport[selectedDeck] = deckData;
+
+            const jsonString = JSON.stringify(dataToExport, null, 4);
+            const blob = new Blob([jsonString], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            // Nome do arquivo agora inclui o formato
+            a.download = `${selectedUser}_${currentFormat}_${selectedDeck}_tracker_data.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
 
         // --- EVENT LISTENERS E INICIALIZAÇÃO ---
 
@@ -479,9 +633,9 @@
                 popularUserSelector();
                 userSelector.value = selectedUser;
                 userManagementDiv.style.display = 'none';
-                popularDropdowns(allMatches[selectedUser]);
+                popularDropdowns();
             } else if (selectedUser) {
-                 alert(`Usuário ${selectedUser} já existe. Por favor, selecione-o na lista.`);
+                alert(`Usuário ${selectedUser} já existe. Por favor, selecione-o na lista.`);
             }
         });
 
@@ -491,22 +645,28 @@
                 userManagementDiv.style.display = 'block';
                 newUserInput.focus();
                 selectedUser = null; 
-                popularDropdowns(null);
+                popularDropdowns();
             } else if (selectedUser) {
                 userManagementDiv.style.display = 'none';
-                popularDropdowns(allMatches[selectedUser]);
+                popularDropdowns();
             } else {
                 userManagementDiv.style.display = 'none';
-                popularDropdowns(null);
+                popularDropdowns();
             }
         });
 
-        // NOVO: Listener para o Seletor de Formato
+        // Listener para o Seletor de Formato
         formatoSelect.addEventListener('change', (e) => {
             currentFormat = e.target.value;
-            // A lista de decks oponentes precisa ser atualizada com o novo metagame
-            popularDropdowns(allMatches[selectedUser]);
+            // Re-popula os dropdowns com os decks do novo formato
+            popularDropdowns();
             updateStatsDisplay(matchupSelect.value); 
+        });
+
+        deckSelector.addEventListener('change', (e) => {
+            // Quando o deck próprio muda, atualiza o histórico e matchups
+            popularDropdowns();
+            updateStatsDisplay(null);
         });
 
         document.getElementById('matchup-form').addEventListener('submit', (e) => {
@@ -522,7 +682,7 @@
             }
 
             if (!deckProprio || !deckOponente || !selectedUser) {
-                alert('Por favor, preencha todos os campos e selecione um usuário.');
+                alert('Por favor, preencha todos os campos e selecione um usuário/deck.');
                 return;
             }
 
@@ -551,7 +711,6 @@
             if (selectedMatchup) {
                 updateStatsDisplay(selectedMatchup);
             } else {
-                displayDiv.style.display = 'none';
                 updateStatsDisplay(null);
             }
         });
@@ -573,10 +732,11 @@
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
             loadData(); 
-            popularUserSelector(); // Popula o dropdown de usuários primeiro
+            popularUserSelector(); 
 
             // Inicializa o seletor de formato com o valor de currentFormat
-            formatoSelect.value = currentFormat; 
+            formatoSelect.value = currentFormat;
+            popularDropdowns(); // Chama para popular os decks do formato padrão
         });
     </script>
 </body>
