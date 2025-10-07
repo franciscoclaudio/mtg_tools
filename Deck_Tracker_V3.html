@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multi-Deck Match Tracker</title>
-<style>
+    <style>
     body {
         font-family: 'Arial', sans-serif;
         margin: 0;
@@ -113,6 +113,7 @@
         justify-content: space-between;
         text-align: center;
     }
+    /* INÍCIO DA MODIFICAÇÃO PARA CORRIGIR A IMAGEM DE FUNDO */
     .stats-section.general-stats {
         /* Alterações de Fundo para laboratory_manic.jpg */
         background-image: url('./img/laboratory_manic.jpg'); /* Nome do arquivo: laboratory_manic.jpg */
@@ -122,7 +123,7 @@
          position: relative;
         overflow: hidden;
         color: #fff;
-         display: block;
+         /* display: block; <--- REMOVIDO: Mantém o padrão flex ou block, mas não sobrescreve de forma que possa atrapalhar o posicionamento dos filhos */
      }
     .stats-section.general-stats::before {
         content: "";
@@ -138,8 +139,10 @@
     .stats-section.general-stats h4,
     .stats-section.general-stats .stats-item {
         position: relative;
-        z-index: 2;
+        z-index: 2; /* Garante que o conteúdo fique visível acima do overlay */
     }
+    /* FIM DA MODIFICAÇÃO PARA CORRIGIR A IMAGEM DE FUNDO */
+
     .stats-section.general-stats .stats-section {
          display: flex;
          background: none;
