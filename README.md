@@ -63,6 +63,5 @@ A versão **V3** do Deck Tracker representa a maior atualização da ferramenta,
 mtg\_tools/  
 ├── Ferramentas\_MTG.html          \# Menu principal  
 ├── Deck\_Tracker\_V3.html          \# Tracker Multi-Usuário/Formato (Cloud Sync)  
-├── Deck\_Tracker\_V1.html          \# Versão Antiga (Ex-Amulet Tracker 4.0)  
 ├── calculadora\_mtg.html          \# Calculadora hipergeométrica  
 └── img/                          \# Imagens de fundo
