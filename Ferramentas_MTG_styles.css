@@ -1,0 +1,85 @@
+    <style>
+        /* Cores Temáticas do Amulet Tracker: #27883d (Verde Principal), #a87e50 (Terracota/Terra), #3a2e22 (Fundo Escuro) */
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            color: #d8d8d8;
+            background-color: #3a2e22; 
+        }
+        .container {
+            max-width: 500px; /* Mais estreito para um menu */
+            margin: 80px auto;
+            background: rgba(30, 30, 30, 0.95); 
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+            border: 3px solid #a87e50; /* Borda Terracota */
+            text-align: center; /* Centraliza o conteúdo principal */
+        }
+        header {
+            margin-bottom: 30px;
+            
+            /* Imagem de Fundo para o Header: Primeval Titan */
+            background-image: url('./img/dissection_tools.jpg');
+            background-size: cover;
+            background-position: center 30%; 
+            background-color: #27883d; /* Fallback */
+            padding: 25px; /* Mais padding para dar destaque */
+            border-radius: 8px;
+            border: 1px solid #a87e50;
+        }
+        h1, h2 {
+            color: #fff;
+            margin: 0;
+            text-shadow: 1px 1px 4px #000;
+        }
+        h1 {
+            font-size: 2.2em;
+        }
+        h2 {
+            font-size: 1.2em;
+            margin-top: 5px;
+            color: #ffd700; /* Dourado para contraste */
+        }
+
+        /* Estilo dos botões/links do menu */
+        .menu-link {
+            display: block;
+            width: 90%; /* Ocupa a maior parte do container */
+            margin: 15px auto;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #27883d; /* Verde Principal */
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.4em;
+            transition: background-color 0.3s, transform 0.2s;
+            border: 2px solid #a87e50; /* Borda Terracota */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+        .menu-link:hover {
+            background-color: #329f4b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7);
+        }
+        /* Botão de destaque para o Tracker (principal) */
+        .menu-link.tracker {
+            background-color: #a87e50; /* Terracota para destaque */
+            border-color: #ffd700;
+        }
+        .menu-link.tracker:hover {
+             background-color: #c99c6b;
+        }
+
+        /* Rodapé temático */
+        footer {
+            margin-top: 40px;
+            padding-top: 15px;
+            border-top: 1px dashed #737373;
+            font-size: 0.9em;
+            color: #a87e50;
+        }
+
+    </style>
