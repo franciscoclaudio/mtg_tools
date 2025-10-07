@@ -18,7 +18,7 @@
         text-align: center;
         margin-bottom: 30px;
         /* Alteração com o caminho corrigido (../) */
-        background-image: url('./img/tireless_tracker.jpg'); 
+        background-image: url('../img/tireless_tracker.jpg'); 
         background-size: cover; 
         background-position: center 20%; 
         background-color: #27883d; 
@@ -108,7 +108,7 @@
     }
     .stats-section.general-stats {
         /* Alteração com o caminho corrigido (../) */
-        background-image: url('./img/laboratory_manic.jpg'); 
+        background-image: url('../img/laboratory_manic.jpg'); 
         background-size: cover; 
         background-position: center; 
         background-color: #3a2e22;
