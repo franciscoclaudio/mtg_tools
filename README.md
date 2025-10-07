@@ -14,16 +14,6 @@ Agora você pode rastrear estatísticas para múltiplos decks simultaneamente, n
 - **Importação/Exportação**: Sistema melhorado que mantém os dados de todos os decks
 - **Retrocompatibilidade**: Importa dados antigos do Amulet Titan Tracker automaticamente
 
-## 📁 Estrutura de Arquivos
-
-```
-mtg_tools/
-├── Ferramentas_MTG.html          # Menu principal
-├── Multi_Deck_Tracker.html       # 🆕 Novo tracker multi-deck
-├── Amulet_tracker_4.0.html       # Tracker original (mantido)
-├── calculadora_mtg.html          # Calculadora hipergeométrica
-└── img/                          # Imagens de fundo
-```
 
 ## 🚀 Como Usar o Multi-Deck Tracker
 https://franciscoclaudio.github.io/mtg_tools/Ferramentas_MTG.html
@@ -48,6 +38,17 @@ https://franciscoclaudio.github.io/mtg_tools/Ferramentas_MTG.html
 ### 4. Compartilhar Dados com Amigos
 - **Exportar**: Clique em "Exportar Dados" para baixar um arquivo `.txt` com todos os seus decks
 - **Importar**: Clique em "Importar Dados" para adicionar dados de amigos aos seus
+
+## 📁 Estrutura de Arquivos
+
+```
+mtg_tools/
+├── Ferramentas_MTG.html          # Menu principal
+├── Multi_Deck_Tracker.html       # 🆕 Novo tracker multi-deck
+├── Amulet_tracker_4.0.html       # Tracker original (mantido)
+├── calculadora_mtg.html          # Calculadora hipergeométrica
+└── img/                          # Imagens de fundo
+```
 
 ## 💾 Formato dos Dados
 
