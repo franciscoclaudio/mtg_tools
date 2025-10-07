@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Deck Match Tracker</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            color: #d8d8d8;
+            background-color: #3a2e22;
+         }
+        .container {
+            max-width: 750px;
+            margin: 40px auto;
+            background: rgba(30, 30, 30, 0.95);
+             padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+            border: 3px solid #a87e50;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            background-color: #27883d;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        h1, h2 {
+            color: #fff;
+            margin: 0;
+            text-shadow: 1px 1px 3px #000;
+        }
+        h2 {
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+        h4 {
+            color: #e0ac66;
+            border-bottom: 2px solid #e0ac66;
+            padding-bottom: 5px;
+            margin-top: 25px;
+        }
+        form, .data-display, .import-export {
+            background: #282828;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #444;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #ccc;
+        }
+        input[type="text"], select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #3c3c3c;
+            color: #fff;
+        }
+        button {
+            background-color: #27883d;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1a652d;
+        }
+        .results-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .results-container select {
+            flex-grow: 1;
+        }
+        .results-container .select-wrapper {
+            flex-grow: 1;
+        }
+        #stats-display, #historic-display {
+            padding: 15px;
+            border: 1px solid #666;
+            border-radius: 4px;
+            margin-top: 15px;
+            min-height: 50px;
+            background-color: #333;
+        }
+        .deck-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #555;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        .deck-list div {
+            padding: 5px;
+            border-bottom: 1px solid #444;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .deck-list div:hover {
+            background-color: #444;
+        }
+        .matchup-list {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #444;
+            font-size: 0.9em;
+        }
+        .matchup-list span {
+            display: inline-block;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .win { background-color: #32a852; color: white; }
+        .loss { background-color: #a83232; color: white; }
+        .draw { background-color: #a8a832; color: black; }
+        .not_played { background-color: #555; color: white; }
+        .matchup-delete {
+            cursor: pointer;
+            color: #ff4d4d;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    <script>
+        // Configuração do Firebase
+        // ATENÇÃO: Substitua os dados abaixo pelos da sua aplicação Firebase!
+        const firebaseConfig = {
+            apiKey: "SEU_API_KEY_AQUI", // Seu API Key
+            authDomain: "SEU_AUTH_DOMAIN_AQUI",
+            databaseURL: "SEU_DATABASE_URL_AQUI",
+            projectId: "SEU_PROJECT_ID_AQUI",
+            storageBucket: "SEU_STORAGE_BUCKET_AQUI",
+            messagingSenderId: "SEU_MESSAGING_SENDER_ID_AQUI",
+            appId: "SEU_APP_ID_AQUI"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Variáveis globais
+        let allMatches = {}; // Estrutura: {usuario: {deck: [{match}, {match}, ...]}}
+        let selectedUser = null;
+        const NOVA_MATCHUP_OPCAO = 'Novo Deck';
+        let currentFormat = 'Modern'; // Novo: Define o formato padrão
+
+        // Elementos do DOM
+        const userSelector = document.getElementById('user-select');
+        const userManagementDiv = document.getElementById('user-management');
+        const newUserInput = document.getElementById('new-user-input');
+        const deckSelector = document.getElementById('deck-select');
+        const deckOponenteSelect = document.getElementById('deck-oponente-select');
+        const matchupSelect = document.getElementById('matchup-select');
+        const novaMatchupContainer = document.getElementById('nova-matchup-container');
+        const novaMatchupInput = document.getElementById('nova-matchup-input');
+        const statsDiv = document.getElementById('stats-display');
+        const historicDiv = document.getElementById('historic-display');
+        const displayDiv = document.getElementById('data-display');
+        const fileInput = document.getElementById('file-input');
+        // Novo elemento DOM para o formato
+        const formatoSelect = document.getElementById('formato-select');
+
+
+        // Metagames por Formato (LISTAS DE DECK ATUALIZADAS)
+        const METAGAME_DECKS_BY_FORMAT = {
+            'Modern': [
+                'Esper Goryo\'s', 'Tameshi Belcher', 'Boros Energy', 'Eldrazi Tron',
+                'Izzet Affinity', 'Esper Blink', 'Simic Neoform', 'Domain Zoo',
+                'Azorius Control', 'Mono-Green Tron', 'Murktide Regent', 'Rhinos',
+                'Living End', 'Yawgmoth', 'Amulet Titan', 'Outro' // 'Outro' para decks fora da lista
+            ],
+            'Pioneer': [
+                'Rakdos Midrange', 'Izzet Phoenix', 'Azorius Control', 'Lotus Field Combo',
+                'Gruul Prowess', 'Boros Convoke', 'Abzan Greasefang', 'Mono Black Midrange',
+                'Selesnya Angels', 'Niv to Light', 'Outro'
+            ],
+            'Legacy': [
+                'Izzet Delver', 'Dimir Reanimator', 'Eldrazi', 'Red Stompy',
+                'Dimir Tempo', 'Azorius Control', 'Jeskai Control',
+                '4c Initiative', 'The EPIC Storm', 'Outro'
+            ],
+            'Standard': [
+                'Izzet Cauldron', 'Dimir Midrange', 'Mono Red Aggro', 'Boros Burn',
+                'Azorius Control', 'Mono Black', 'Gruul Landfall', 'Jeskai Artifacts',
+                'Esper Control', 'Outro'
+            ],
+            'Pauper': [
+                'Mono-Blue Terror', 'Madness Burn', 'Grixis Affinity',
+                'Mono-Black Sacrifice', 'Golgari Gardens', 'Jeskai Ephemerate',
+                'Spy Combo', 'Burn', 'Elves', 'Outro'
+            ]
+        };
+
+        // --- FUNÇÕES DE LÓGICA ---
+
+        function saveData() {
+            if (selectedUser) {
+                database.ref('users/' + selectedUser).set(allMatches[selectedUser])
+                    .catch(error => console.error("Erro ao salvar dados:", error));
+            }
+        }
+
+        function loadData() {
+            database.ref('users/').once('value')
+                .then(snapshot => {
+                    allMatches = snapshot.val() || {};
+                    popularUserSelector();
+                })
+                .catch(error => console.error("Erro ao carregar dados:", error));
+        }
+
+        function popularUserSelector() {
+            const users = Object.keys(allMatches);
+            userSelector.innerHTML = '<option value="">-- Selecione o Usuário --</option>';
+            users.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user;
+                option.textContent = user;
+                userSelector.appendChild(option);
+            });
+            userSelector.innerHTML += '<option value="Novo Usuário">Novo Usuário</option>';
+            userManagementDiv.style.display = 'block';
+        }
+
+        function popularDropdowns(matchData) {
+            // Se não houver dados ou usuário selecionado, esconde tudo
+            if (!matchData || !selectedUser) {
+                deckSelector.innerHTML = '<option value="">-- Selecione o Deck Próprio --</option>';
+                deckOponenteSelect.innerHTML = '<option value="">-- Selecione o Deck Oponente --</option>';
+                matchupSelect.innerHTML = '<option value="">-- Selecione o Matchup --</option>';
+                displayDiv.style.display = 'none';
+                return;
+            }
+
+            // 1. Popula o Seletor de Deck Próprio
+            const decks = Object.keys(matchData);
+            deckSelector.innerHTML = '<option value="">-- Selecione o Deck Próprio --</option>';
+            decks.forEach(deck => {
+                const option = document.createElement('option');
+                option.value = deck;
+                option.textContent = deck;
+                deckSelector.appendChild(option);
+            });
+            deckSelector.innerHTML += '<option value="Novo Deck">Novo Deck</option>';
+
+
+            // 2. Popula o Seletor de Deck Oponente
+            const selectedDeck = deckSelector.value;
+            deckOponenteSelect.innerHTML = '<option value="">-- Selecione o Deck Oponente --</option>';
+
+            // Lista de Decks baseada no formato atual
+            const metagameDecks = METAGAME_DECKS_BY_FORMAT[currentFormat] || ['Outro'];
+
+            metagameDecks.forEach(deck => {
+                if (deck !== selectedDeck) { // Não lista o próprio deck como oponente
+                    const option = document.createElement('option');
+                    option.value = deck;
+                    option.textContent = deck;
+                    deckOponenteSelect.appendChild(option);
+                }
+            });
+            // 3. Popula o Seletor de Matchup
+            const matchups = [...new Set(matchData[selectedDeck] ? matchData[selectedDeck].map(m => m.deckOponente) : [])];
+
+            matchupSelect.innerHTML = '<option value="">-- Selecione o Matchup --</option>';
+            matchups.sort().forEach(matchup => {
+                const option = document.createElement('option');
+                option.value = matchup;
+                option.textContent = matchup;
+                matchupSelect.appendChild(option);
+            });
+
+            displayDiv.style.display = selectedDeck ? 'block' : 'none';
+            updateStatsDisplay(null);
+        }
+
+        function updateStatsDisplay(matchup) {
+            const selectedDeck = deckSelector.value;
+            if (!selectedUser || !selectedDeck || !allMatches[selectedUser][selectedDeck]) {
+                statsDiv.innerHTML = '<p>Nenhum dado para exibir.</p>';
+                historicDiv.innerHTML = '';
+                return;
+            }
+
+            let matches = allMatches[selectedUser][selectedDeck];
+            if (matchup) {
+                matches = matches.filter(m => m.deckOponente === matchup);
+                historicDiv.innerHTML = `<h4>Histórico contra ${matchup}</h4>`;
+            } else {
+                historicDiv.innerHTML = `<h4>Histórico Completo</h4>`;
+            }
+
+            // Calcular Estatísticas
+            let wins = 0;
+            let losses = 0;
+            let draws = 0;
+            let gamesPlayed = 0;
+
+            matches.forEach(match => {
+                const g1 = match.g1Result;
+                const g2 = match.g2Result;
+                const g3 = match.g3Result;
+                
+                // Lógica de cálculo de partida (best-of-three)
+                let matchWins = 0;
+                let matchLosses = 0;
+
+                if (g1 === 'win') matchWins++;
+                if (g2 === 'win') matchWins++;
+                if (g3 === 'win') matchWins++;
+
+                if (g1 === 'loss') matchLosses++;
+                if (g2 === 'loss') matchLosses++;
+                if (g3 === 'loss') matchLosses++;
+                
+                // Resultado final da partida
+                if (matchWins > matchLosses) {
+                    wins++;
+                } else if (matchLosses > matchWins) {
+                    losses++;
+                } else if (matchWins === matchLosses && matchWins > 0) { // 1-1, 0-0 ou 2-2 (só 1-1 é válido)
+                    draws++;
+                }
+                
+                // Contagem total de partidas
+                gamesPlayed++;
+            });
+
+            const winRate = gamesPlayed > 0 ? ((wins / gamesPlayed) * 100).toFixed(1) : 0;
+
+            statsDiv.innerHTML = `
+                <p><strong>Formato:</strong> ${currentFormat}</p>
+                <p><strong>Deck Próprio:</strong> ${selectedDeck}</p>
+                <p><strong>Total de Partidas:</strong> ${gamesPlayed}</p>
+                <p><strong>Vitórias (W):</strong> ${wins}</p>
+                <p><strong>Derrotas (L):</strong> ${losses}</p>
+                <p><strong>Empates (D):</strong> ${draws}</p>
+                <p><strong>Win Rate (%):</strong> ${winRate}%</p>
+            `;
+
+            // Exibir Histórico
+            matches.reverse().slice(0, 10).forEach(match => {
+                const date = new Date(match.timestamp).toLocaleString('pt-BR');
+                const g1Class = match.g1Result;
+                const g2Class = match.g2Result;
+                const g3Class = match.g3Result;
+
+                historicDiv.innerHTML += `
+                    <div class="matchup-list">
+                        <span>${date}</span>
+                        <span>vs ${match.deckOponente}</span>
+                        <span>
+                            G1: <span class="${g1Class}">${g1Class === 'not_played' ? 'N/J' : g1Class.toUpperCase()}</span>
+                            G2: <span class="${g2Class}">${g2Class === 'not_played' ? 'N/J' : g2Class.toUpperCase()}</span>
+                            G3: <span class="${g3Class}">${g3Class === 'not_played' ? 'N/J' : g3Class.toUpperCase()}</span>
+                        </span>
+                        <span class="matchup-delete" data-timestamp="${match.timestamp}" title="Deletar Match">🗑️</span>
+                    </div>
+                `;
+            });
+
+            // Adicionar listener de delete ao histórico
+            historicDiv.querySelectorAll('.matchup-delete').forEach(button => {
+                button.addEventListener('click', deleteMatch);
+            });
+        }
+
+        function addMatch(newMatch) {
+            if (!allMatches[selectedUser]) {
+                allMatches[selectedUser] = {};
+            }
+            const deckKey = newMatch.deckProprio;
+            const matchupKey = newMatch.deckOponente;
+
+            if (!allMatches[selectedUser][deckKey]) {
+                allMatches[selectedUser][deckKey] = [];
+            }
+
+            allMatches[selectedUser][deckKey].push(newMatch);
+            saveData();
+            
+            // Atualiza os dropdowns para incluir o novo deck/matchup
+            popularDropdowns(allMatches[selectedUser]); 
+            
+            // Atualiza as estatísticas
+            updateStatsDisplay(matchupKey);
+        }
+
+        function deleteMatch(e) {
+            const timestamp = e.target.getAttribute('data-timestamp');
+            const deckKey = deckSelector.value;
+            
+            if (confirm("Tem certeza que deseja deletar esta partida?")) {
+                let matches = allMatches[selectedUser][deckKey];
+                const initialLength = matches.length;
+                
+                // Filtra e remove a partida com o timestamp correspondente
+                allMatches[selectedUser][deckKey] = matches.filter(match => match.timestamp !== timestamp);
+
+                if (allMatches[selectedUser][deckKey].length === initialLength) {
+                     alert("Erro: Partida não encontrada para deleção.");
+                     return;
+                }
+
+                saveData();
+                updateStatsDisplay(matchupSelect.value); // Re-exibe as estatísticas
+            }
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    if (selectedUser) {
+                        // Verifica se o JSON importado é um único deck ou a estrutura completa
+                        const deckName = Object.keys(importedData)[0];
+                        
+                        if (Array.isArray(importedData[deckName])) {
+                            // Estrutura de importação de um único deck (e.g., {"Amulet Titan": [...]})
+                            
+                            // Inicializa o nó do usuário se não existir
+                            if (!allMatches[selectedUser]) {
+                                allMatches[selectedUser] = {};
+                            }
+
+                            // Adiciona/Substitui o deck no objeto do usuário
+                            allMatches[selectedUser][deckName] = importedData[deckName];
+                            
+                            saveData();
+                            alert(`Dados do deck "${deckName}" importados com sucesso para o usuário ${selectedUser}!`);
+                            popularDropdowns(allMatches[selectedUser]);
+                            deckSelector.value = deckName;
+                            updateStatsDisplay(null);
+                        } else {
+                            alert("Estrutura do arquivo JSON inválida. Deve ser no formato {\"Nome do Deck\": [...]}.");
+                        }
+                    } else {
+                        alert("Por favor, selecione um usuário antes de importar os dados.");
+                    }
+                } catch (error) {
+                    alert("Erro ao ler ou processar o arquivo JSON. Certifique-se de que o formato está correto.");
+                    console.error("Erro na importação:", error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+
+        // --- EVENT LISTENERS E INICIALIZAÇÃO ---
+
+        document.getElementById('user-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            selectedUser = newUserInput.value.trim();
+            if (selectedUser && !allMatches[selectedUser]) {
+                allMatches[selectedUser] = {};
+                popularUserSelector();
+                userSelector.value = selectedUser;
+                userManagementDiv.style.display = 'none';
+                popularDropdowns(allMatches[selectedUser]);
+            } else if (selectedUser) {
+                 alert(`Usuário ${selectedUser} já existe. Por favor, selecione-o na lista.`);
+            }
+        });
+
+        userSelector.addEventListener('change', (e) => {
+            selectedUser = e.target.value;
+            if (selectedUser === 'Novo Usuário') {
+                userManagementDiv.style.display = 'block';
+                newUserInput.focus();
+                selectedUser = null; 
+                popularDropdowns(null);
+            } else if (selectedUser) {
+                userManagementDiv.style.display = 'none';
+                popularDropdowns(allMatches[selectedUser]);
+            } else {
+                userManagementDiv.style.display = 'none';
+                popularDropdowns(null);
+            }
+        });
+
+        // NOVO: Listener para o Seletor de Formato
+        formatoSelect.addEventListener('change', (e) => {
+            currentFormat = e.target.value;
+            // A lista de decks oponentes precisa ser atualizada com o novo metagame
+            popularDropdowns(allMatches[selectedUser]);
+            updateStatsDisplay(matchupSelect.value); 
+        });
+
+        document.getElementById('matchup-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const form = e.target;
+            const deckProprio = deckSelector.value;
+            let deckOponente = deckOponenteSelect.value;
+            
+            // Se o deckOponente for 'Novo Deck', pega o valor do campo de input
+            if (deckOponente === NOVA_MATCHUP_OPCAO) {
+                deckOponente = novaMatchupInput.value.trim();
+            }
+
+            if (!deckProprio || !deckOponente || !selectedUser) {
+                alert('Por favor, preencha todos os campos e selecione um usuário.');
+                return;
+            }
+
+            const g1Result = form.elements['g1-result'].value;
+            const g2Result = form.elements['g2-result'].value;
+            const g3Result = form.elements['g3-result'].value;
+            
+            const newMatch = {
+                timestamp: new Date().toISOString(),
+                deckProprio: deckProprio,
+                deckOponente: deckOponente,
+                g1Result: g1Result,
+                g2Result: g2Result,
+                g3Result: g3Result
+            };
+                        
+            addMatch(newMatch);
+            
+            form.reset();
+            document.getElementById('g3-result').value = 'not_played';
+            novaMatchupContainer.style.display = 'none';
+        });
+
+        matchupSelect.addEventListener('change', (e) => {
+            const selectedMatchup = e.target.value;
+            if (selectedMatchup) {
+                updateStatsDisplay(selectedMatchup);
+            } else {
+                displayDiv.style.display = 'none';
+                updateStatsDisplay(null);
+            }
+        });
+
+        deckOponenteSelect.addEventListener('change', (e) => {
+            if (e.target.value === NOVA_MATCHUP_OPCAO) {
+                novaMatchupContainer.style.display = 'block';
+                novaMatchupInput.setAttribute('required', 'required');
+                novaMatchupInput.focus();
+            } else {
+                novaMatchupContainer.style.display = 'none';
+                novaMatchupInput.removeAttribute('required');
+                novaMatchupInput.value = '';
+            }
+        });
+
+        fileInput.addEventListener('change', handleFileSelect, false);
+
+        // Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData(); 
+            popularUserSelector(); // Popula o dropdown de usuários primeiro
+
+            // Inicializa o seletor de formato com o valor de currentFormat
+            formatoSelect.value = currentFormat; 
+        });
+    </script>
+</body>
+</html>
