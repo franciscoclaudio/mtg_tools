@@ -9,13 +9,13 @@
             font-family: 'Arial', sans-serif;
             margin: 0;
             color: #d8d8d8;
-            background-color: #3a2e22; 
-        }
+            background-color: #3a2e22;
+         }
         .container {
             max-width: 750px;
             margin: 40px auto;
-            background: rgba(30, 30, 30, 0.95); 
-            padding: 30px;
+            background: rgba(30, 30, 30, 0.95);
+             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
             border: 3px solid #a87e50;
@@ -23,10 +23,10 @@
         header {
             text-align: center;
             margin-bottom: 30px;
-            background-image: url('./img/amulet_of_vigor.jpg');
+            /* background-image: url('./img/amulet_of_vigor.jpg'); */
             background-size: cover;
-            background-position: center 35%; 
-            background-color: #27883d;
+            background-position: center 35%;
+             background-color: #27883d;
             padding: 15px;
             border-radius: 8px;
         }
@@ -46,8 +46,8 @@
             margin-bottom: 5px;
         }
         form, .stats-section, .deck-selector {
-            background-color: #595959; 
-            padding: 20px;
+            background-color: #595959;
+             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;
             border: 1px solid #737373;
@@ -90,15 +90,15 @@
             text-align: center;
         }
         .stats-section.general-stats {
-            background-image: url('./img/primeval_titan');
+            /* background-image: url('./img/primeval_titan'); */
             background-size: cover;
             background-position: center 20%;
-            background-color: #3a2e22; 
-            position: relative;
+            background-color: #3a2e22;
+             position: relative;
             overflow: hidden;
-            color: #fff; 
-            display: block; 
-        }
+            color: #fff;
+             display: block;
+         }
         .stats-section.general-stats::before {
             content: "";
             position: absolute;
@@ -106,8 +106,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5); 
-            z-index: 1;
+            background: rgba(0, 0, 0, 0.5);
+             z-index: 1;
         }
         .stats-section.general-stats h2,
         .stats-section.general-stats h4,
@@ -183,24 +183,23 @@
             <h1>Multi-Deck Match Tracker</h1>
             <h2>Rastreamento para Múltiplos Decks (Modern)</h2>
         </header>
-
         <div class="deck-selector">
             <label for="current-deck-select">Selecione seu Deck Atual:</label>
             <select id="current-deck-select" required>
                 <option value="" disabled selected>Carregando...</option>
             </select>
-            
             <div id="novo-deck-container">
                 <label for="novo-deck-input">Nome do Novo Deck:</label>
                 <input type="text" id="novo-deck-input" placeholder="Ex: Murktide Regent">
                 <button type="button" onclick="criarNovoDeck()">Criar Deck</button>
             </div>
         </div>
-
+        
         <div class="control-buttons">
             <button type="button" onclick="exportData()">Exportar Dados</button>
             <button type="button" onclick="document.getElementById('file-input').click()">Importar Dados</button>
             <input type="file" id="file-input" accept=".txt,.json" style="display: none;">
+            <button type="button" onclick="promptForFirebaseConfig()">Configurar Firebase</button>
         </div>
         
         <form id="matchup-form">
@@ -208,36 +207,30 @@
             <select id="deck-oponente-select" required>
                 <option value="" disabled selected>Selecione o Deck Oponente</option>
             </select>
-
             <div id="nova-matchup-container">
                 <label for="nova-matchup-input">Nova Matchup:</label>
                 <input type="text" id="nova-matchup-input" placeholder="Ex: Boros Energy">
             </div>
-            
-            <label for="g1-result">Resultado do Game 1:</label>
+                        <label for="g1-result">Resultado do Game 1:</label>
             <select id="g1-result" required>
                 <option value="" disabled selected>G1</option>
                 <option value="win">Vitória</option>
                 <option value="loss">Derrota</option>
             </select>
-
             <label for="g2-result">Resultado do Game 2:</label>
             <select id="g2-result" required>
                 <option value="" disabled selected>G2</option>
                 <option value="win">Vitória</option>
                 <option value="loss">Derrota</option>
             </select>
-            
-            <label for="g3-result">Resultado do Game 3:</label>
+                        <label for="g3-result">Resultado do Game 3:</label>
             <select id="g3-result">
                 <option value="not_played" selected>Não Jogou (2-0 ou 0-2)</option>
                 <option value="win">Vitória</option>
                 <option value="loss">Derrota</option>
             </select>
-            
-            <button type="submit">Registrar Partida</button>
+                        <button type="submit">Registrar Partida</button>
         </form>
-
         <div class="stats-section general-stats">
             <h2>Estatísticas Gerais - <span id="current-deck-name">Selecione um Deck</span></h2>
             <div class="stats-item">
@@ -248,10 +241,9 @@
                 <div class="stats-value" id="wr-game-geral">--%</div>
                 <div class="stats-label">Win Rate (Games)</div>
             </div>
-            
-            <h4>Win Rate por Game (G1/G2/G3)</h4>
-            <div class="stats-section"> 
-                <div class="stats-item">
+                        <h4>Win Rate por Game (G1/G2/G3)</h4>
+            <div class="stats-section">
+                 <div class="stats-item">
                     <div class="stats-value" id="wr-g1-geral">--%</div>
                     <div class="stats-label">Game 1 WR</div>
                 </div>
@@ -265,7 +257,6 @@
                 </div>
             </div>
         </div>
-
         <form id="matchup-stats-form">
             <h2>Estatísticas por Matchup</h2>
             <label for="matchup-select">Selecione um Matchup:</label>
@@ -273,11 +264,9 @@
                 <option value="" selected>Selecione um Deck...</option>
             </select>
         </form>
-        
-        <div id="matchup-stats-display">
+                <div id="matchup-stats-display">
             <h3>Matchup contra: <span id="matchup-name"></span></h3>
-            
-            <div class="stats-section">
+                        <div class="stats-section">
                 <div class="stats-item">
                     <div class="stats-value" id="matchup-wr-match">--%</div>
                     <div class="stats-label">Match Win Rate</div>
@@ -287,8 +276,7 @@
                     <div class="stats-label">Game Win Rate Total</div>
                 </div>
             </div>
-            
-            <h4>Win Rate por Game (G1/G2/G3)</h4>
+                        <h4>Win Rate por Game (G1/G2/G3)</h4>
             <div class="stats-section">
                 <div class="stats-item">
                     <div class="stats-value" id="matchup-wr-g1">--%</div>
@@ -304,25 +292,31 @@
                 </div>
             </div>
         </div>
-
         <div id="status" class="loading">Carregando dados iniciais...</div>
     </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <script>
-        const STORAGE_KEY = 'MultiDeckTrackerData';
+        const STORAGE_KEY = 'MultiDeckTrackerData'; 
+        const FIREBASE_CONFIG_KEY = 'firebaseConfig';
         const NOVO_DECK_OPCAO = 'NOVO_DECK';
         const NOVA_MATCHUP_OPCAO = 'NOVA_MATCHUP';
-        
+
         const MODERN_METAGAME_DECKS = [
-            'Esper Goryo\'s', 'Tameshi Belcher', 'Boros Energy', 'Eldrazi Tron', 
+            'Esper Goryo\'s', 'Tameshi Belcher', 'Boros Energy', 'Eldrazi Tron',
             'Izzet Affinity', 'Esper Blink', 'Simic Neoform', 'Domain Zoo',
             'Azorius Control', 'Mono-Green Tron', 'Murktide Regent', 'Rhinos',
             'Living End', 'Yawgmoth', 'Amulet Titan'
         ];
+        
+        // VARIÁVEIS DE CONEXÃO
+        let firebaseApp = null;
+        let dbRef = null; 
+        let allData = {}; 
 
-        let allData = {}; // { "Amulet Titan": [...matches], "Murktide": [...matches] }
         let currentDeck = null;
-
         const currentDeckSelect = document.getElementById('current-deck-select');
         const deckOponenteSelect = document.getElementById('deck-oponente-select');
         const matchupSelect = document.getElementById('matchup-select');
@@ -335,18 +329,102 @@
         const displayDiv = document.getElementById('matchup-stats-display');
         const fileInput = document.getElementById('file-input');
 
-        function loadData() {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                allData = JSON.parse(stored);
-            } else {
-                allData = { 'Amulet Titan': [] };
+        // FUNÇÕES DE CONEXÃO FIREBASE
+        function promptForFirebaseConfig() {
+            const defaultText = `const firebaseConfig = {
+  apiKey: "AIzaSyDXVYDMwvnUoCUMTlvh8egzqS06_o497y8",
+  authDomain: "mtg-tracker-ea7a2.firebaseapp.com",
+  databaseURL: "https://mtg-tracker-ea7a2-default-rtdb.firebaseio.com",
+  projectId: "mtg-tracker-ea7a2",
+  storageBucket: "mtg-tracker-ea7a2.firebasestorage.app",
+  messagingSenderId: "365839696243",
+  appId: "1:365839696243:web:72d8c86b1d4acafbc7c506",
+  measurementId: "G-029H8PTYRH"
+};`;
+            
+            const storedConfig = localStorage.getItem(FIREBASE_CONFIG_KEY);
+            const promptValue = storedConfig ? storedConfig : defaultText;
+
+            const configString = prompt("Cole seu objeto 'const firebaseConfig = {...}' completo aqui:", promptValue);
+
+            if (configString) {
+                try {
+                    // Limpa a string para extrair apenas o objeto JS
+                    const configObjString = configString.replace(/const firebaseConfig\s*=\s*/, '').replace(/;$/, '').trim();
+                    
+                    // Converte a string em objeto
+                    const config = new Function('return ' + configObjString)();
+                    
+                    if (config && config.projectId && config.databaseURL) {
+                        localStorage.setItem(FIREBASE_CONFIG_KEY, configString);
+                        initializeFirebase(config);
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Erro ao analisar a configuração:", e);
+                }
+            }
+            statusElement.textContent = 'Configuração inválida ou cancelada.';
+            statusElement.className = 'error';
+        }
+
+        function initializeFirebase(config) {
+            try {
+                // Tenta inicializar o app se não estiver inicializado
+                if (!firebaseApp) {
+                    firebaseApp = firebase.initializeApp(config);
+                }
+                
+                dbRef = firebase.database().ref('decks');
+                statusElement.textContent = 'Conectando ao Firebase...';
+                statusElement.className = 'loading';
+                
+                // Listener para carregar e atualizar os dados em tempo real
+                dbRef.on('value', (snapshot) => {
+                    allData = snapshot.val() || { 'Amulet Titan': [] };
+                    
+                    if (currentDeck && !allData[currentDeck]) {
+                        currentDeck = Object.keys(allData)[0] || null;
+                    }
+                    
+                    popularDeckSelector();
+                    popularDropdowns();
+                    updateStatsDisplay(null);
+                    
+                    statusElement.textContent = 'Conectado ao Firebase! Dados atualizados.';
+                    statusElement.className = 'success';
+                }, (error) => {
+                    console.error("Erro de conexão com o Firebase:", error);
+                    statusElement.textContent = `Erro ao conectar/ler dados: ${error.message}`;
+                    statusElement.className = 'error';
+                });
+
+            } catch (e) {
+                console.error("Erro ao inicializar o Firebase:", e);
+                statusElement.textContent = `Erro ao inicializar o Firebase: ${e.message}`;
+                statusElement.className = 'error';
             }
         }
 
-        function saveData() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+        function loadData() {
+            const storedConfigString = localStorage.getItem(FIREBASE_CONFIG_KEY);
+            if (storedConfigString) {
+                try {
+                    const config = new Function('return ' + storedConfigString.replace(/const firebaseConfig\s*=\s*/, '').replace(/;$/, '').trim())();
+                    initializeFirebase(config);
+                } catch(e) {
+                    console.warn("Configuração do Firebase armazenada inválida. Iniciando no modo local.");
+                    statusElement.textContent = 'Configuração do Firebase não encontrada. Clique em "Configurar Firebase".';
+                    statusElement.className = 'error';
+                }
+            } else {
+                statusElement.textContent = 'Configuração do Firebase não encontrada. Clique em "Configurar Firebase".';
+                statusElement.className = 'error';
+            }
         }
+
+        // Não precisamos mais de saveData(), o Firebase lida com isso em tempo real
+        function saveData() { } 
 
         function getCurrentMatches() {
             return currentDeck ? (allData[currentDeck] || []) : [];
@@ -355,24 +433,26 @@
         function popularDeckSelector() {
             currentDeckSelect.innerHTML = '';
             const deckNames = Object.keys(allData).sort();
-            
+                        
             deckNames.forEach(name => {
                 currentDeckSelect.appendChild(new Option(name, name));
             });
             currentDeckSelect.appendChild(new Option('--- Criar Novo Deck ---', NOVO_DECK_OPCAO));
-
+            
             if (!currentDeck && deckNames.length > 0) {
                 currentDeck = deckNames[0];
             }
             if (currentDeck) {
                 currentDeckSelect.value = currentDeck;
             }
+            // Chama a atualização para garantir que o nome do deck seja exibido
+            updateStatsDisplay(null);
         }
 
         function criarNovoDeck() {
             const nomeDeck = novoDeckInput.value.trim();
-            if (!nomeDeck) {
-                statusElement.textContent = 'Digite um nome para o novo deck!';
+            if (!nomeDeck || !dbRef) {
+                statusElement.textContent = 'Erro: Verifique a conexão com o Firebase.';
                 statusElement.className = 'error';
                 return;
             }
@@ -381,37 +461,50 @@
                 statusElement.className = 'error';
                 return;
             }
-
-            allData[nomeDeck] = [];
-            currentDeck = nomeDeck;
-            saveData();
-            popularDeckSelector();
-            novoDeckContainer.style.display = 'none';
-            novoDeckInput.value = '';
-            updateStatsDisplay(null);
-            statusElement.textContent = `Deck "${nomeDeck}" criado com sucesso!`;
-            statusElement.className = 'success';
+            
+            // Salva o novo deck no Firebase
+            dbRef.child(nomeDeck).set([])
+                .then(() => {
+                    currentDeck = nomeDeck;
+                    novoDeckContainer.style.display = 'none';
+                    novoDeckInput.value = '';
+                    statusElement.textContent = `Deck "${nomeDeck}" criado com sucesso! Sincronizando...`;
+                    statusElement.className = 'loading';
+                })
+                .catch(error => {
+                    statusElement.textContent = `Erro ao criar deck: ${error.message}`;
+                    statusElement.className = 'error';
+                });
         }
 
         function addMatch(newMatch) {
-            if (!currentDeck) return;
-            if (!allData[currentDeck]) {
-                allData[currentDeck] = [];
+            if (!currentDeck || !dbRef) {
+                statusElement.textContent = 'Erro: Não conectado ao Firebase. Configure primeiro.';
+                statusElement.className = 'error';
+                return;
             }
-            allData[currentDeck].push(newMatch);
-            saveData();
+            
+            // Adiciona a partida usando push para criar um ID único
+            dbRef.child(currentDeck).push(newMatch)
+                .then(() => {
+                    statusElement.textContent = 'Partida registrada com sucesso! Sincronizando...';
+                    statusElement.className = 'loading';
+                })
+                .catch(error => {
+                    statusElement.textContent = `Erro ao salvar partida: ${error.message}`;
+                    statusElement.className = 'error';
+                });
+                
             popularDropdowns();
-            updateStatsDisplay(null);
         }
 
         function exportData() {
             const data = JSON.stringify(allData, null, 2);
-            if (data === '{}' || Object.keys(allData).every(k => allData[k].length === 0)) {
+            if (data === '{}' || Object.keys(allData).every(k => Object.keys(allData[k] || {}).length === 0)) {
                 statusElement.textContent = 'Não há dados para exportar.';
                 statusElement.className = 'error';
                 return;
             }
-
             const filename = 'multi_deck_tracker_data.txt';
             const blob = new Blob([data], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
@@ -422,30 +515,35 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
+                        
             statusElement.textContent = 'Dados exportados com sucesso!';
             statusElement.className = 'success';
         }
-
+        
         function importData(jsonString) {
             try {
-                const importedData = JSON.parse(jsonString);
-                
-                // Merge data
-                for (const [deck, matches] of Object.entries(importedData)) {
-                    if (!allData[deck]) {
-                        allData[deck] = [];
-                    }
-                    allData[deck] = allData[deck].concat(matches);
+                const importedData = JSON.parse(jsonString);                                
+                if (!dbRef) {
+                    // Se não estiver conectado, salva no LocalStorage como fallback
+                    localStorage.setItem(STORAGE_KEY, jsonString);
+                    statusElement.textContent = 'Dados importados localmente. Conecte ao Firebase para salvar na nuvem.';
+                    statusElement.className = 'loading';
+                    loadData(); // Tenta recarregar para ver se a config do Firebase é chamada
+                    return;
                 }
                 
-                saveData();
-                popularDeckSelector();
-                popularDropdowns();
-                updateStatsDisplay(null);
-
-                statusElement.textContent = 'Dados importados com sucesso!';
-                statusElement.className = 'success';
+                // Se conectado ao Firebase, tenta fazer o merge/replace (set completo)
+                // Nota: Usamos set para garantir que o Firebase espelhe exatamente o arquivo.
+                dbRef.set(importedData)
+                    .then(() => {
+                        statusElement.textContent = 'Dados importados e sincronizados com o Firebase!';
+                        statusElement.className = 'success';
+                    })
+                    .catch(e => {
+                        statusElement.textContent = `Erro ao importar para o Firebase: ${e.message}`;
+                        statusElement.className = 'error';
+                    });
+                
             } catch (e) {
                 statusElement.textContent = `Erro ao importar: ${e.message}`;
                 statusElement.className = 'error';
@@ -455,7 +553,6 @@
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = (e) => importData(e.target.result);
             reader.onerror = () => {
@@ -467,27 +564,30 @@
         }
 
         function calculateStats(filteredData) {
+            // Converte o objeto de matches do Firebase (com chaves únicas) em um array
+            const matchesArray = Array.isArray(filteredData) ? filteredData : Object.values(filteredData || {});
+            
             let totalMatches = 0, matchesWon = 0, totalGames = 0, gamesWon = 0;
             let g1Total = 0, g1Won = 0, g2Total = 0, g2Won = 0, g3Total = 0, g3Won = 0;
 
-            for (const match of filteredData) {
+            for (const match of matchesArray) {
                 const g1 = match.g1Result ? match.g1Result.toLowerCase() : '';
                 const g2 = match.g2Result ? match.g2Result.toLowerCase() : '';
-                const g3 = match.g3Result ? match.g3Result.toLowerCase() : 'not_played'; 
+                const g3 = match.g3Result ? match.g3Result.toLowerCase() : 'not_played';
 
                 if (g1) { g1Total++; if (g1 === 'win') { g1Won++; gamesWon++; } }
                 if (g2) { g2Total++; if (g2 === 'win') { g2Won++; gamesWon++; } }
                 if (g3 !== 'not_played' && g3) { g3Total++; if (g3 === 'win') { g3Won++; gamesWon++; } }
-                
-                totalGames = g1Total + g2Total + g3Total;
+
                 totalMatches++;
-                
                 let wins = (g1 === 'win' ? 1 : 0) + (g2 === 'win' ? 1 : 0) + (g3 === 'win' ? 1 : 0);
                 if (wins >= 2) matchesWon++;
             }
 
-            const formatWR = (num, den) => den > 0 ? (num / den * 100).toFixed(1) + '%' : '--%';
+            totalGames = g1Total + g2Total + g3Total;
 
+            const formatWR = (num, den) => den > 0 ? (num / den * 100).toFixed(1) + '%' : '--%';
+            
             return {
                 generalWinRate: formatWR(matchesWon, totalMatches),
                 gameWinRate: formatWR(gamesWon, totalGames),
@@ -502,7 +602,8 @@
             let filteredMatches;
 
             if (matchupName) {
-                filteredMatches = currentMatches.filter(m => m.deckOponente === matchupName);
+                // Filtra as matches do deck atual pelo nome do oponente
+                filteredMatches = Object.values(currentMatches).filter(m => m.deckOponente === matchupName);
                 document.getElementById('matchup-name').textContent = matchupName;
                 displayDiv.style.display = 'block';
             } else {
@@ -524,35 +625,44 @@
                 document.getElementById('wr-g1-geral').textContent = stats.g1WinRate;
                 document.getElementById('wr-g2-geral').textContent = stats.g2WinRate;
                 document.getElementById('wr-g3-geral').textContent = stats.g3WinRate;
-                
-                document.getElementById('current-deck-name').textContent = currentDeck || 'Nenhum';
-            }
 
-            if (currentMatches.length > 0 && !matchupName) {
-                statusElement.textContent = `${currentDeck}: ${currentMatches.length} partidas registradas.`;
-                statusElement.className = 'success';
-            } else if (currentMatches.length === 0 && !matchupName) {
-                statusElement.textContent = 'Registre sua primeira partida com este deck!';
-                statusElement.className = 'error';
+                const matchCount = Object.keys(currentMatches).length;
+                document.getElementById('current-deck-name').textContent = currentDeck || 'Nenhum';
+                
+                if (currentDeck && matchCount > 0) {
+                    if (dbRef) {
+                        statusElement.textContent = `${currentDeck}: ${matchCount} partidas registradas (Cloud).`;
+                    } else {
+                        statusElement.textContent = `${currentDeck}: ${matchCount} partidas registradas (Local).`;
+                    }
+                    statusElement.className = 'success';
+                } else if (currentDeck && matchCount === 0) {
+                    statusElement.textContent = `Deck "${currentDeck}" pronto. Registre sua primeira partida!`;
+                    statusElement.className = 'error';
+                }
             }
         }
 
         function popularDropdowns() {
             const currentMatches = getCurrentMatches();
-            const recordedDecks = new Set(currentMatches.map(m => m.deckOponente));
             
+            // Pega o nome do oponente de todas as matches
+            const recordedDecks = new Set(Object.values(currentMatches).map(m => m.deckOponente));
+                        
             let uniqueDecks = [...MODERN_METAGAME_DECKS];
             recordedDecks.forEach(deck => {
                 if (!uniqueDecks.includes(deck)) uniqueDecks.push(deck);
             });
             uniqueDecks.sort();
 
+            // Popular Deck Oponente
             deckOponenteSelect.innerHTML = '';
             deckOponenteSelect.appendChild(new Option('Selecione o Deck Oponente', '', true, true));
             uniqueDecks.forEach(name => deckOponenteSelect.appendChild(new Option(name, name)));
             deckOponenteSelect.appendChild(new Option('--- Nova Matchup (Manual) ---', NOVA_MATCHUP_OPCAO));
-
-            matchupSelect.innerHTML = ''; 
+            
+            // Popular Estatísticas por Matchup
+            matchupSelect.innerHTML = '';
             matchupSelect.appendChild(new Option('Selecione um Deck...', ''));
             uniqueDecks.forEach(name => matchupSelect.appendChild(new Option(name, name)));
         }
@@ -572,7 +682,7 @@
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            
+                        
             if (!currentDeck) {
                 statusElement.textContent = 'Selecione um deck primeiro!';
                 statusElement.className = 'error';
@@ -593,7 +703,7 @@
             const g1Result = document.getElementById('g1-result').value;
             const g2Result = document.getElementById('g2-result').value;
             const g3Result = document.getElementById('g3-result').value;
-
+            
             if (!deckOponente || !g1Result || !g2Result) {
                 statusElement.textContent = 'Preencha todos os campos obrigatórios!';
                 statusElement.className = 'error';
@@ -604,18 +714,16 @@
                 timestamp: new Date().toISOString(),
                 deckProprio: currentDeck,
                 deckOponente: deckOponente,
-                g1Result: g1Result, 
-                g2Result: g2Result, 
-                g3Result: g3Result 
+                g1Result: g1Result,
+                g2Result: g2Result,
+                g3Result: g3Result
             };
-            
+                        
             addMatch(newMatch);
             
-            statusElement.textContent = 'Partida registrada com sucesso!';
-            statusElement.className = 'success';
             form.reset();
-            document.getElementById('g3-result').value = 'not_played'; 
-            novaMatchupContainer.style.display = 'none'; 
+            document.getElementById('g3-result').value = 'not_played';
+            novaMatchupContainer.style.display = 'none';
         });
 
         matchupSelect.addEventListener('change', (e) => {
@@ -644,7 +752,7 @@
 
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
-            loadData();
+            loadData(); // Tenta carregar a configuração e iniciar o Firebase
             popularDeckSelector();
             popularDropdowns();
             updateStatsDisplay(null);
