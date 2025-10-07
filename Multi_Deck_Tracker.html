@@ -199,7 +199,6 @@
             <button type="button" onclick="exportData()">Exportar Dados</button>
             <button type="button" onclick="document.getElementById('file-input').click()">Importar Dados</button>
             <input type="file" id="file-input" accept=".txt,.json" style="display: none;">
-            <button type="button" onclick="promptForFirebaseConfig()">Configurar Firebase</button>
         </div>
         
         <form id="matchup-form">
@@ -292,15 +291,26 @@
                 </div>
             </div>
         </div>
-        <div id="status" class="loading">Carregando dados iniciais...</div>
+        <div id="status" class="loading">Conectando ao Firebase...</div>
     </div>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <script>
+        // CONFIGURAÇÃO FIREBASE EMBUTIDA
+        const firebaseConfig = {
+            apiKey: "AIzaSyDXVYDMwvnUoCUMTlvh8egzqS06_o497y8",
+            authDomain: "mtg-tracker-ea7a2.firebaseapp.com",
+            databaseURL: "https://mtg-tracker-ea7a2-default-rtdb.firebaseio.com",
+            projectId: "mtg-tracker-ea7a2",
+            storageBucket: "mtg-tracker-ea7a2.firebasestorage.app",
+            messagingSenderId: "365839696243",
+            appId: "1:365839696243:web:72d8c86b1d4acafbc7c506",
+            measurementId: "G-029H8PTYRH"
+        };
+
         const STORAGE_KEY = 'MultiDeckTrackerData'; 
-        const FIREBASE_CONFIG_KEY = 'firebaseConfig';
         const NOVO_DECK_OPCAO = 'NOVO_DECK';
         const NOVA_MATCHUP_OPCAO = 'NOVA_MATCHUP';
 
@@ -329,45 +339,10 @@
         const displayDiv = document.getElementById('matchup-stats-display');
         const fileInput = document.getElementById('file-input');
 
-        // FUNÇÕES DE CONEXÃO FIREBASE
-        function promptForFirebaseConfig() {
-            const defaultText = `const firebaseConfig = {
-  apiKey: "AIzaSyDXVYDMwvnUoCUMTlvh8egzqS06_o497y8",
-  authDomain: "mtg-tracker-ea7a2.firebaseapp.com",
-  databaseURL: "https://mtg-tracker-ea7a2-default-rtdb.firebaseio.com",
-  projectId: "mtg-tracker-ea7a2",
-  storageBucket: "mtg-tracker-ea7a2.firebasestorage.app",
-  messagingSenderId: "365839696243",
-  appId: "1:365839696243:web:72d8c86b1d4acafbc7c506",
-  measurementId: "G-029H8PTYRH"
-};`;
-            
-            const storedConfig = localStorage.getItem(FIREBASE_CONFIG_KEY);
-            const promptValue = storedConfig ? storedConfig : defaultText;
-
-            const configString = prompt("Cole seu objeto 'const firebaseConfig = {...}' completo aqui:", promptValue);
-
-            if (configString) {
-                try {
-                    // Limpa a string para extrair apenas o objeto JS
-                    const configObjString = configString.replace(/const firebaseConfig\s*=\s*/, '').replace(/;$/, '').trim();
-                    
-                    // Converte a string em objeto
-                    const config = new Function('return ' + configObjString)();
-                    
-                    if (config && config.projectId && config.databaseURL) {
-                        localStorage.setItem(FIREBASE_CONFIG_KEY, configString);
-                        initializeFirebase(config);
-                        return;
-                    }
-                } catch (e) {
-                    console.error("Erro ao analisar a configuração:", e);
-                }
-            }
-            statusElement.textContent = 'Configuração inválida ou cancelada.';
-            statusElement.className = 'error';
-        }
-
+        // FUNÇÕES DE CONEXÃO FIREBASE (SIMPLIFICADAS)
+        
+        // Função promptForFirebaseConfig() REMOVIDA
+        
         function initializeFirebase(config) {
             try {
                 // Tenta inicializar o app se não estiver inicializado
@@ -406,28 +381,17 @@
             }
         }
 
+        // loadData agora chama initializeFirebase diretamente com a config embutida
         function loadData() {
-            const storedConfigString = localStorage.getItem(FIREBASE_CONFIG_KEY);
-            if (storedConfigString) {
-                try {
-                    const config = new Function('return ' + storedConfigString.replace(/const firebaseConfig\s*=\s*/, '').replace(/;$/, '').trim())();
-                    initializeFirebase(config);
-                } catch(e) {
-                    console.warn("Configuração do Firebase armazenada inválida. Iniciando no modo local.");
-                    statusElement.textContent = 'Configuração do Firebase não encontrada. Clique em "Configurar Firebase".';
-                    statusElement.className = 'error';
-                }
-            } else {
-                statusElement.textContent = 'Configuração do Firebase não encontrada. Clique em "Configurar Firebase".';
-                statusElement.className = 'error';
-            }
+            initializeFirebase(firebaseConfig);
         }
 
         // Não precisamos mais de saveData(), o Firebase lida com isso em tempo real
         function saveData() { } 
 
         function getCurrentMatches() {
-            return currentDeck ? (allData[currentDeck] || []) : [];
+            // Garante que o objeto retornado é a lista de matches do deck atual
+            return currentDeck ? (allData[currentDeck] || {}) : {};
         }
 
         function popularDeckSelector() {
@@ -452,7 +416,7 @@
         function criarNovoDeck() {
             const nomeDeck = novoDeckInput.value.trim();
             if (!nomeDeck || !dbRef) {
-                statusElement.textContent = 'Erro: Verifique a conexão com o Firebase.';
+                statusElement.textContent = 'Erro: Não conectado ao Firebase.';
                 statusElement.className = 'error';
                 return;
             }
@@ -462,8 +426,8 @@
                 return;
             }
             
-            // Salva o novo deck no Firebase
-            dbRef.child(nomeDeck).set([])
+            // Salva o novo deck no Firebase (com uma lista vazia de matches como objeto {})
+            dbRef.child(nomeDeck).set({})
                 .then(() => {
                     currentDeck = nomeDeck;
                     novoDeckContainer.style.display = 'none';
@@ -479,7 +443,7 @@
 
         function addMatch(newMatch) {
             if (!currentDeck || !dbRef) {
-                statusElement.textContent = 'Erro: Não conectado ao Firebase. Configure primeiro.';
+                statusElement.textContent = 'Erro: Não conectado ao Firebase. Recarregue a página.';
                 statusElement.className = 'error';
                 return;
             }
@@ -524,16 +488,12 @@
             try {
                 const importedData = JSON.parse(jsonString);                                
                 if (!dbRef) {
-                    // Se não estiver conectado, salva no LocalStorage como fallback
-                    localStorage.setItem(STORAGE_KEY, jsonString);
-                    statusElement.textContent = 'Dados importados localmente. Conecte ao Firebase para salvar na nuvem.';
-                    statusElement.className = 'loading';
-                    loadData(); // Tenta recarregar para ver se a config do Firebase é chamada
+                    statusElement.textContent = 'Erro: Não conectado ao Firebase para importar. Recarregue a página.';
+                    statusElement.className = 'error';
                     return;
                 }
                 
-                // Se conectado ao Firebase, tenta fazer o merge/replace (set completo)
-                // Nota: Usamos set para garantir que o Firebase espelhe exatamente o arquivo.
+                // Substitui completamente os dados no Firebase pelos dados importados
                 dbRef.set(importedData)
                     .then(() => {
                         statusElement.textContent = 'Dados importados e sincronizados com o Firebase!';
@@ -565,7 +525,7 @@
 
         function calculateStats(filteredData) {
             // Converte o objeto de matches do Firebase (com chaves únicas) em um array
-            const matchesArray = Array.isArray(filteredData) ? filteredData : Object.values(filteredData || {});
+            const matchesArray = Object.values(filteredData || {});
             
             let totalMatches = 0, matchesWon = 0, totalGames = 0, gamesWon = 0;
             let g1Total = 0, g1Won = 0, g2Total = 0, g2Won = 0, g3Total = 0, g3Won = 0;
@@ -633,7 +593,8 @@
                     if (dbRef) {
                         statusElement.textContent = `${currentDeck}: ${matchCount} partidas registradas (Cloud).`;
                     } else {
-                        statusElement.textContent = `${currentDeck}: ${matchCount} partidas registradas (Local).`;
+                        // Este caso é improvável após esta alteração, mas mantido por segurança.
+                        statusElement.textContent = `${currentDeck}: ${matchCount} partidas registradas (Erro de conexão).`;
                     }
                     statusElement.className = 'success';
                 } else if (currentDeck && matchCount === 0) {
@@ -752,10 +713,7 @@
 
         // Initialization
         document.addEventListener('DOMContentLoaded', () => {
-            loadData(); // Tenta carregar a configuração e iniciar o Firebase
-            popularDeckSelector();
-            popularDropdowns();
-            updateStatsDisplay(null);
+            loadData(); // Agora conecta automaticamente
         });
     </script>
 </body>
