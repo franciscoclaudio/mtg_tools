@@ -24,222 +24,182 @@
         text-align: center;
         margin-bottom: 30px;
         /* Alterações de Fundo para tireless_tracker.jpg */
-        background-image: url('./img/tireless_tracker.jpg');
+        background-image: url('./img/tireless_tracker.jpg'); /* Nome do arquivo: tireless_tracker.jpg */
         background-size: cover; /* Garante que a imagem cubra a área */
         background-position: center 20%; /* Centraliza a imagem no eixo X e move 20% para baixo */
         background-color: #27883d; /* Cor de fallback */
         padding: 15px;
         border-radius: 8px;
-        min-height: 100px; /* Adicionado para dar espaço ao fundo */
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+        position: relative; /* Necessário para z-index do pseudo-elemento */
+        overflow: hidden; /* Oculta partes da imagem que possam extrapolar */
+    }
+    /* Overlay para o Header */
+    header::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4); /* Escurece a imagem para destacar o texto */
+        z-index: 1;
+    }
+    /* Z-index para o conteúdo do Header */
+    header h1, header h2 {
+        position: relative;
+        z-index: 2;
     }
     h1, h2 {
         color: #fff;
         margin: 0;
         text-shadow: 1px 1px 3px #000;
-        /* Adicionado fundo semi-transparente para melhor leitura sobre a imagem */
-        background-color: rgba(0, 0, 0, 0.4); 
-        padding: 5px 10px;
-        border-radius: 5px;
-        align-self: center;
     }
     h2 {
         font-size: 1.2em;
         margin-top: 10px;
     }
     h4 {
-        color: #e6b885;
-        border-bottom: 2px solid #a87e50;
-        padding-bottom: 5px;
-        margin-top: 25px;
-        margin-bottom: 15px;
-    }
-    form, .stats-display, .user-stats {
-        background-color: #272727;
-        padding: 20px;
-        border-radius: 8px;
+        color: #a87e50;
+        text-align: center;
         margin-top: 20px;
-        border: 1px solid #444;
+        margin-bottom: 5px;
+    }
+    form, .stats-section, .deck-selector, .user-selector, .format-selector { /* Adicionado .format-selector */
+        background-color: #595959;
+         padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 1px solid #737373;
+    }
+    .user-selector { /* Estilo específico para o seletor de usuário */
+        background-color: #3a2e22;
+        border: 2px solid #fff;
+    }
+    .deck-selector {
+        background-color: #27883d;
+        border: 2px solid #ffd700;
+    }
+    .deck-selector label, .user-selector label, .format-selector label {
+        color: #fff;
     }
     label {
         display: block;
-        margin-top: 10px;
-        margin-bottom: 5px;
-        color: #e6b885;
+        margin-bottom: 8px;
         font-weight: bold;
     }
-    input[type="text"], 
-    select {
+    input[type="number"], input[type="text"], select, button {
         width: 100%;
-        padding: 10px;
+        padding: 12px;
         margin-bottom: 15px;
-        border-radius: 5px;
-        border: 1px solid #555;
-        background-color: #333;
-        color: #fff;
+        border-radius: 6px;
+        border: 1px solid #27883d;
         box-sizing: border-box;
+        background-color: #f0f0f0;
+        color: #3a2e22;
     }
     button {
         background-color: #27883d;
         color: white;
-        padding: 10px 15px;
-        border: none;
-        border-radius: 5px;
         cursor: pointer;
-        font-size: 1em;
-        transition: background-color 0.3s, transform 0.1s;
-        margin-top: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        font-weight: bold;
+        transition: background-color 0.3s;
     }
     button:hover {
-        background-color: #36a44f;
-        transform: translateY(-2px);
+        background-color: #329f4b;
     }
-    button:active {
-        transform: translateY(0);
-    }
-    .form-group {
-        margin-bottom: 15px;
-    }
-    .result-selects {
+    /* ... (Resto dos estilos permanece o mesmo) ... */
+    .stats-section {
         display: flex;
-        gap: 15px;
-        margin-bottom: 15px;
-    }
-    .result-selects > div {
-        flex-grow: 1;
-    }
-    .stats-display {
-        display: none;
-        margin-top: 25px;
-        border: 2px solid #27883d;
-    }
-    .stats-display p {
-        margin: 5px 0;
-        font-size: 1.1em;
-    }
-    .stats-display .win { color: #5cb85c; font-weight: bold; }
-    .stats-display .loss { color: #d9534f; font-weight: bold; }
-    .stats-display .draw { color: #f0ad4e; font-weight: bold; }
-    .stats-display .percentage { color: #64b5f6; font-weight: bold; }
-
-    #nova-matchup-container {
-        display: none;
-        margin-top: 10px;
-        padding: 10px;
-        border: 1px dashed #a87e50;
-        border-radius: 5px;
-    }
-    
-    #match-list { 
-        list-style: none;
-        padding: 0;
-    }
-
-    /* ESTILO CORRIGIDO PARA ITENS DA LISTA */
-    .match-list-item {
-        background-color: #333;
-        padding: 12px; /* Aumenta o padding */
-        margin-top: 8px;
-        margin-bottom: 10px; /* Garante espaçamento entre os itens */
-        border-radius: 5px;
-        display: flex;
-        flex-direction: row; /* Garante que o conteúdo e o botão fiquem na mesma linha */
         justify-content: space-between;
-        align-items: center; /* Centraliza verticalmente o conteúdo e o botão */
-        border-left: 5px solid #a87e50;
-        font-size: 0.95em;
+        text-align: center;
     }
-
-    .match-list-item button {
-        background: none;
-        border: none;
-        color: #d9534f;
-        cursor: pointer;
-        padding: 5px;
-        font-size: 1.3em; /* Aumenta um pouco o tamanho do 'X' */
-        transition: color 0.3s;
-        box-shadow: none;
-        margin-top: 0;
-        flex-shrink: 0; /* Impede que o botão encolha */
-        margin-left: 10px;
-    }
-
-    .match-list-item button:hover {
-        color: #ff0000;
-        transform: none;
-    }
-
-    .match-details {
-        flex-grow: 1;
-    }
-    
-    .match-details strong {
-        color: #fff; 
-        font-size: 1.05em;
-    }
-    .match-details small {
-        display: block; /* Garante que a data vá para uma nova linha */
-        color: #aaa;
-        margin-top: 4px;
-        font-size: 0.85em;
-    }
-
-    /* Cores dos resultados */
-    .match-result-g1 { color: #5cb85c; font-weight: bold; } /* Vitória */
-    .match-result-g2 { color: #d9534f; font-weight: bold; } /* Derrota */
-    .match-result-g3 { color: #f0ad4e; font-weight: bold; } /* Não jogado */
-
-    .import-export {
-        display: flex;
-        gap: 10px;
-        margin-top: 20px;
-        justify-content: space-between;
-    }
-    .import-export button, .import-export input {
-        flex-grow: 1;
-    }
-    .file-input-wrapper {
-        position: relative;
+    .stats-section.general-stats {
+        /* Alterações de Fundo para laboratory_manic.jpg */
+        background-image: url('./img/laboratory_maniac.jpg); /* Nome do arquivo: laboratory_manic.jpg */
+        background-size: cover; /* Garante que a imagem cubra a área */
+        background-position: center; /* Centraliza a imagem no container */
+        background-color: #3a2e22;
+         position: relative;
         overflow: hidden;
-        display: inline-block;
-        flex-grow: 1;
-    }
-    .file-input-wrapper input[type=file] {
+        color: #fff;
+         display: block;
+     }
+    .stats-section.general-stats::before {
+        content: "";
         position: absolute;
-        left: 0;
         top: 0;
-        opacity: 0;
-        cursor: pointer;
+        left: 0;
+        width: 100%;
         height: 100%;
-        width: 100%;
+        background: rgba(0, 0, 0, 0.5);
+         z-index: 1;
     }
-    .file-input-wrapper button {
-        width: 100%;
-        display: block;
+    .stats-section.general-stats h2,
+    .stats-section.general-stats h4,
+    .stats-section.general-stats .stats-item {
+        position: relative;
+        z-index: 2;
     }
-    
-    #user-select-container {
-        margin-bottom: 20px;
+    .stats-section.general-stats .stats-section {
+         display: flex;
+         background: none;
+         padding: 0;
+         margin-bottom: 0;
+         border: none;
     }
-
-    .user-stats {
-        margin-top: 20px;
-        padding: 15px;
-        background-color: #1e1e1e;
-        border-radius: 8px;
+    .stats-item {
+        flex-grow: 1;
+        margin: 0 5px;
+        padding: 10px;
+        border-radius: 6px;
+        background-color: #3a2e22;
         border: 1px solid #a87e50;
     }
-
-    .user-stats h3 {
-        color: #fff;
-        margin-top: 0;
-        border-bottom: 1px solid #444;
-        padding-bottom: 5px;
+    .stats-label {
+        font-size: 0.8em;
+        color: #ccc;
     }
-
+    .stats-value {
+        font-size: 1.8em;
+        font-weight: bolder;
+        color: #a87e50;
+        margin-top: 5px;
+    }
+    #status {
+        text-align: center;
+        padding: 10px;
+        border-radius: 6px;
+        margin-top: 20px;
+        font-weight: bold;
+        background-color: #3a2e22;
+        border: 1px solid #737373;
+    }
+    .loading { color: #ffd700; }
+    .error { color: #ff6347; }
+    .success { color: #27883d; }
+    #matchup-stats-display {
+        display: none;
+        margin-top: 15px;
+        border-top: 1px dashed #a87e50;
+        padding-top: 15px;
+    }
+    #matchup-stats-display .stats-item {
+        background-color: #3a2e22;
+        border-color: #27883d;
+    }
+    #nova-matchup-container, #novo-deck-container, #novo-usuario-container { /* Adicionado #novo-usuario-container */
+        display: none;
+    }
+    .control-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .control-buttons button {
+        flex: 1;
+        margin-bottom: 0;
+        padding: 10px;
+    }
 </style>
 </head>
 <body>
