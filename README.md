@@ -15,7 +15,7 @@ Agora você pode rastrear estatísticas para múltiplos decks simultaneamente, n
 - **Retrocompatibilidade**: Importa dados antigos do Amulet Titan Tracker automaticamente
 
 
-## 🚀 Como Usar o Multi-Deck Tracker
+## 🚀 Link para as ferramentas
 https://franciscoclaudio.github.io/mtg_tools/Ferramentas_MTG.html
 
 ### 1. Criar um Novo Deck
