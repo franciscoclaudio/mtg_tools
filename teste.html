@@ -100,7 +100,7 @@
             max-height: 200px;
             overflow-y: auto;
             border: 1px solid #555;
-            padding: 0 10px; /* Ajuste para melhor visualização */
+            padding: 0 10px;
             margin-bottom: 15px;
             border-radius: 4px;
         }
@@ -111,13 +111,13 @@
             transition: background-color 0.2s;
         }
         .deck-item:last-child {
-             border-bottom: none; /* Remove a linha do último item */
+             border-bottom: none;
         }
         .deck-item:hover {
             background-color: #444;
         }
         .deck-item.selected {
-            background-color: #a87e50; /* Cor de destaque */
+            background-color: #a87e50;
             color: #fff;
             font-weight: bold;
             border-left: 5px solid #27883d;
@@ -139,7 +139,7 @@
             <label for="user-select">Selecione o Usuário:</label>
             <select id="user-select"></select>
             
-            <form id="user-form" style="margin-top: 15px;">
+            <form id="user-form" style="margin-top: 15px; display: none;"> 
                 <label for="new-user-input">Novo Usuário:</label>
                 <input type="text" id="new-user-input" placeholder="Digite o nome do novo usuário" required>
                 <button type="submit">Criar Usuário</button>
@@ -255,7 +255,6 @@
         const database = firebase.database();
 
         // Variáveis globais
-        // ESTRUTURA: {usuario: {formato: {deck: [{match}, {match}, ...]}}}
         let allMatches = {}; 
         let selectedUser = null;
         let currentFormat = 'Modern'; 
@@ -263,17 +262,12 @@
 
         // Elementos do DOM
         const userSelector = document.getElementById('user-select');
-        const userManagementDiv = document.getElementById('user-management');
+        const userForm = document.getElementById('user-form'); // Adicionado
         const newUserInput = document.getElementById('new-user-input');
-        
-        // Novos elementos para o novo layout de seleção de deck
         const deckListContainer = document.getElementById('deck-list');
         const newDeckForm = document.getElementById('new-deck-form');
         const newDeckInput = document.getElementById('new-deck-input');
-
-        // SELECT escondido (mantido para compatibilidade de valor)
         const deckSelector = document.getElementById('deck-select'); 
-
         const deckOponenteSelect = document.getElementById('deck-oponente-select');
         const matchupSelect = document.getElementById('matchup-select');
         const novaMatchupContainer = document.getElementById('nova-matchup-container');
@@ -290,7 +284,7 @@
                 'Esper Goryo\'s', 'Tameshi Belcher', 'Boros Energy', 'Eldrazi Tron',
                 'Izzet Affinity', 'Esper Blink', 'Simic Neoform', 'Domain Zoo',
                 'Azorius Control', 'Mono-Green Tron', 'Murktide Regent', 'Rhinos',
-                'Living End', 'Yawgmoth', 'Amulet Titan', 'Outro' // 'Outro' para decks fora da lista
+                'Living End', 'Yawgmoth', 'Amulet Titan', 'Outro'
             ],
             'Pioneer': [
                 'Rakdos Midrange', 'Izzet Phoenix', 'Azorius Control', 'Lotus Field Combo',
@@ -318,7 +312,6 @@
 
         function saveData() {
             if (selectedUser) {
-                // Salva todos os dados do usuário, incluindo todos os formatos
                 database.ref('users/' + selectedUser).set(allMatches[selectedUser])
                     .catch(error => console.error("Erro ao salvar dados:", error));
             }
@@ -343,35 +336,31 @@
                 userSelector.appendChild(option);
             });
             userSelector.innerHTML += '<option value="Novo Usuário">Novo Usuário</option>';
-            userManagementDiv.style.display = 'block';
+            
+            // Garante que o formulário de novo usuário esteja escondido ao carregar
+            userForm.style.display = 'none'; 
         }
 
         function selectDeckFromList(e) {
             const newDeck = e.target.dataset.deckName;
             const currentSelectedDeck = deckSelector.value;
             
-            if (newDeck === currentSelectedDeck) return; // Não faz nada se for o mesmo deck
+            if (newDeck === currentSelectedDeck) return; 
             
-            // Atualiza o select escondido (o valor que o resto do JS usa)
             deckSelector.value = newDeck; 
 
-            // Remove a seleção de todos os itens e adiciona ao item clicado
             document.querySelectorAll('.deck-item').forEach(div => div.classList.remove('selected'));
             e.target.classList.add('selected');
             
-            // Re-popula os dropdowns (oponente/matchup) e atualiza estatísticas
             popularDropdowns(); 
             updateStatsDisplay(null);
         }
 
         function popularDropdowns() {
-            const selectedDeck = deckSelector.value; // Pega o deck atualmente selecionado
-            // matchData: {formato: {deck: [...]}}
+            const selectedDeck = deckSelector.value; 
             const matchData = allMatches[selectedUser]; 
-            // formatData: {deck: [...]}
             const formatData = matchData ? matchData[currentFormat] : null;
 
-            // Se não houver dados ou usuário/formato selecionado
             if (!selectedUser || !formatData) {
                 deckListContainer.innerHTML = '<p style="color:#aaa; padding: 10px 0;">Selecione um Usuário e um Formato para carregar.</p>';
                 deckSelector.innerHTML = '<option value="">-- Selecione o Deck Próprio --</option>';
@@ -382,25 +371,21 @@
             }
 
             // 1. Popula o Seletor de Deck Próprio (Lista Visual e Select Escondido)
-            const decks = Object.keys(formatData); // Pega decks dentro do formato
+            const decks = Object.keys(formatData); 
             
-            // Limpa o select escondido
             deckSelector.innerHTML = '<option value="">-- Selecione o Deck Próprio --</option>';
             
-            // Limpa e popula o container visual
             deckListContainer.innerHTML = '';
             if (decks.length === 0) {
                 deckListContainer.innerHTML = '<p style="color:#aaa; padding: 10px 0;">Nenhum deck encontrado neste formato. Adicione um abaixo.</p>';
             }
 
             decks.forEach(deck => {
-                // Popula o SELECT escondido
                 const option = document.createElement('option');
                 option.value = deck;
                 option.textContent = deck;
                 deckSelector.appendChild(option);
 
-                // Popula o Container Visual (deckListContainer)
                 const deckDiv = document.createElement('div');
                 deckDiv.textContent = deck;
                 deckDiv.dataset.deckName = deck;
@@ -414,9 +399,7 @@
                 deckListContainer.appendChild(deckDiv);
             });
             
-            // Re-seleciona o valor no select escondido
             deckSelector.value = selectedDeck;
-
 
             // 2. Popula o Seletor de Deck Oponente
             deckOponenteSelect.innerHTML = '<option value="">-- Selecione o Deck Oponente --</option>';
@@ -443,20 +426,14 @@
                 matchupSelect.appendChild(option);
             });
 
-            // Mostra/Esconde a seção de dados
             displayDiv.style.display = selectedDeck ? 'block' : 'none';
             updateStatsDisplay(null);
         }
-
-        // Funções updateStatsDisplay, addMatch, deleteMatch, handleFileSelect, exportData
-        // (Mantêm a lógica do código anterior, agora usando deckSelector.value para o deck)
-        // ... (resto das funções de lógica mantidas)
 
         function updateStatsDisplay(matchup) {
             const selectedDeck = deckSelector.value;
             const formatData = allMatches[selectedUser] ? allMatches[selectedUser][currentFormat] : null;
 
-            // Navega para a nova estrutura: allMatches[selectedUser][currentFormat][selectedDeck]
             if (!selectedUser || !selectedDeck || !formatData || !formatData[selectedDeck]) {
                 statsDiv.innerHTML = '<p>Nenhum dado para exibir.</p>';
                 historicDiv.innerHTML = '';
@@ -471,7 +448,6 @@
                 historicDiv.innerHTML = `<h4>Histórico Completo</h4>`;
             }
 
-            // Calcular Estatísticas
             let wins = 0;
             let losses = 0;
             let draws = 0;
@@ -482,7 +458,6 @@
                 const g2 = match.g2Result;
                 const g3 = match.g3Result;
                 
-                // Lógica de cálculo de partida (best-of-three)
                 let matchWins = 0;
                 let matchLosses = 0;
 
@@ -494,16 +469,14 @@
                 if (g2 === 'loss') matchLosses++;
                 if (g3 === 'loss') matchLosses++;
                 
-                // Resultado final da partida
                 if (matchWins > matchLosses) {
                     wins++;
                 } else if (matchLosses > matchWins) {
                     losses++;
-                } else if (matchWins === matchLosses && matchWins > 0) { // 1-1, 0-0 ou 2-2 (só 1-1 é válido)
+                } else if (matchWins === matchLosses && matchWins > 0) { 
                     draws++;
                 }
                 
-                // Contagem total de partidas
                 gamesPlayed++;
             });
 
@@ -519,8 +492,7 @@
                 <p><strong>Win Rate (%):</strong> ${winRate}%</p>
             `;
 
-            // Exibir Histórico
-            historicDiv.innerHTML = historicDiv.innerHTML.replace('</h4>', ' (Últimas 10)</h4>'); // Ajusta o título
+            historicDiv.innerHTML = historicDiv.innerHTML.replace('</h4>', ' (Últimas 10)</h4>'); 
             matches.reverse().slice(0, 10).forEach(match => {
                 const date = new Date(match.timestamp).toLocaleString('pt-BR');
                 const g1Class = match.g1Result;
@@ -541,7 +513,6 @@
                 `;
             });
 
-            // Adicionar listener de delete ao histórico
             historicDiv.querySelectorAll('.matchup-delete').forEach(button => {
                 button.addEventListener('click', deleteMatch);
             });
@@ -551,7 +522,6 @@
             if (!allMatches[selectedUser]) {
                 allMatches[selectedUser] = {};
             }
-            // Inicializa a chave do formato se não existir
             if (!allMatches[selectedUser][currentFormat]) { 
                 allMatches[selectedUser][currentFormat] = {};
             }
@@ -559,7 +529,6 @@
             const deckKey = newMatch.deckProprio;
             const matchupKey = newMatch.deckOponente;
 
-            // Navega para a nova estrutura: allMatches[selectedUser][currentFormat][deckKey]
             if (!allMatches[selectedUser][currentFormat][deckKey]) {
                 allMatches[selectedUser][currentFormat][deckKey] = [];
             }
@@ -567,23 +536,19 @@
             allMatches[selectedUser][currentFormat][deckKey].push(newMatch);
             saveData();
             
-            // Atualiza os dropdowns para incluir o novo deck/matchup
             popularDropdowns(); 
-            
-            // Atualiza as estatísticas
             updateStatsDisplay(matchupKey);
         }
 
         function deleteMatch(e) {
             const timestamp = e.target.getAttribute('data-timestamp');
             const deckKey = deckSelector.value;
-            const formatData = allMatches[selectedUser][currentFormat]; // Obtém o objeto do formato
+            const formatData = allMatches[selectedUser][currentFormat]; 
             
             if (confirm("Tem certeza que deseja deletar esta partida?")) {
                 let matches = formatData[deckKey];
                 const initialLength = matches.length;
                 
-                // Filtra e remove a partida com o timestamp correspondente (alterando a estrutura aninhada)
                 allMatches[selectedUser][currentFormat][deckKey] = matches.filter(match => match.timestamp !== timestamp);
 
                 if (allMatches[selectedUser][currentFormat][deckKey].length === initialLength) {
@@ -592,7 +557,7 @@
                 }
 
                 saveData();
-                updateStatsDisplay(matchupSelect.value); // Re-exibe as estatísticas
+                updateStatsDisplay(matchupSelect.value); 
             }
         }
 
@@ -615,18 +580,15 @@
                             if (!allMatches[selectedUser]) {
                                 allMatches[selectedUser] = {};
                             }
-                            // Inicializa o formato atual se não existir
                             if (!allMatches[selectedUser][currentFormat]) { 
                                 allMatches[selectedUser][currentFormat] = {};
                             }
 
-                            // Adiciona/Substitui o deck no objeto do usuário sob o FORMATO ATUAL
                             allMatches[selectedUser][currentFormat][deckName] = importedData[deckName];
                             
                             saveData();
                             alert(`Dados do deck "${deckName}" importados com sucesso para o usuário ${selectedUser} no formato ${currentFormat}!`);
                             
-                            // Seleciona o deck importado
                             deckSelector.value = deckName;
                             
                             popularDropdowns();
@@ -652,7 +614,6 @@
                 return;
             }
             
-            // Lê do formato atual
             const deckData = allMatches[selectedUser][currentFormat] ? allMatches[selectedUser][currentFormat][selectedDeck] : null;
 
             if (!deckData || deckData.length === 0) {
@@ -668,7 +629,6 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            // Nome do arquivo agora inclui o formato
             a.download = `${selectedUser}_${currentFormat}_${selectedDeck}_tracker_data.json`;
             document.body.appendChild(a);
             a.click();
@@ -684,17 +644,38 @@
             selectedUser = newUserInput.value.trim();
             if (selectedUser && !allMatches[selectedUser]) {
                 allMatches[selectedUser] = {};
+                saveData(); // Salva o novo usuário vazio
                 popularUserSelector();
                 userSelector.value = selectedUser;
-                userManagementDiv.style.display = 'none';
+                userForm.style.display = 'none'; // Esconde o form após criar
                 popularDropdowns();
             } else if (selectedUser) {
                 alert(`Usuário ${selectedUser} já existe. Por favor, selecione-o na lista.`);
             }
         });
 
-        // NOVO LISTENER: Adicionar Deck
-        newDeckForm.addEventListener('submit', (e) => {
+        // NOVO LISTENER: Controle de visibilidade do formulário de usuário
+        userSelector.addEventListener('change', (e) => {
+            selectedUser = e.target.value;
+            
+            if (selectedUser === 'Novo Usuário') {
+                userForm.style.display = 'block'; // Mostra o formulário
+                newUserInput.focus();
+                selectedUser = null; 
+                deckSelector.value = ''; 
+                popularDropdowns();
+            } else if (selectedUser) {
+                userForm.style.display = 'none'; // Esconde o formulário
+                deckSelector.value = ''; 
+                popularDropdowns();
+            } else {
+                userForm.style.display = 'none'; // Esconde o formulário
+                deckSelector.value = ''; 
+                popularDropdowns();
+            }
+        });
+
+        document.getElementById('new-deck-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const newDeckName = newDeckInput.value.trim();
             
@@ -704,7 +685,6 @@
             }
 
             if (newDeckName && selectedUser && currentFormat) {
-                // Cria um novo nó de deck vazio
                 if (!allMatches[selectedUser]) allMatches[selectedUser] = {};
                 if (!allMatches[selectedUser][currentFormat]) allMatches[selectedUser][currentFormat] = {};
 
@@ -716,47 +696,23 @@
                 allMatches[selectedUser][currentFormat][newDeckName] = [];
                 saveData();
                 
-                // Atualiza o select escondido e a lista visual
                 deckSelector.value = newDeckName; 
                 
-                popularDropdowns(); // Re-popula a lista (e o select escondido)
+                popularDropdowns();
                 updateStatsDisplay(null);
-                newDeckInput.value = ''; // Limpa o campo
+                newDeckInput.value = '';
             } else {
                 alert('Selecione um usuário e um formato e forneça um nome para o novo deck.');
             }
         });
 
-        userSelector.addEventListener('change', (e) => {
-            selectedUser = e.target.value;
-            if (selectedUser === 'Novo Usuário') {
-                userManagementDiv.style.display = 'block';
-                newUserInput.focus();
-                selectedUser = null; 
-                deckSelector.value = ''; // Limpa a seleção de deck
-                popularDropdowns();
-            } else if (selectedUser) {
-                userManagementDiv.style.display = 'none';
-                deckSelector.value = ''; // Limpa a seleção de deck
-                popularDropdowns();
-            } else {
-                userManagementDiv.style.display = 'none';
-                deckSelector.value = ''; // Limpa a seleção de deck
-                popularDropdowns();
-            }
-        });
 
-        // Listener para o Seletor de Formato
         formatoSelect.addEventListener('change', (e) => {
             currentFormat = e.target.value;
-            deckSelector.value = ''; // Limpa a seleção de deck ao trocar o formato
-            // Re-popula os dropdowns com os decks do novo formato
+            deckSelector.value = ''; 
             popularDropdowns();
             updateStatsDisplay(matchupSelect.value); 
         });
-
-        // O evento change no deckSelector agora é desnecessário, pois a função popularDropdowns
-        // já é chamada pelos listeners de click na lista e format/user change.
 
         document.getElementById('matchup-form').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -765,7 +721,6 @@
             const deckProprio = deckSelector.value;
             let deckOponente = deckOponenteSelect.value;
             
-            // Se o deckOponente for 'Novo Deck', pega o valor do campo de input
             if (deckOponente === NOVA_MATCHUP_OPCAO) {
                 deckOponente = novaMatchupInput.value.trim();
             }
@@ -823,9 +778,8 @@
             loadData(); 
             popularUserSelector(); 
 
-            // Inicializa o seletor de formato com o valor de currentFormat
             formatoSelect.value = currentFormat;
-            popularDropdowns(); // Chama para popular os decks do formato padrão
+            popularDropdowns(); 
         });
     </script>
 </body>
