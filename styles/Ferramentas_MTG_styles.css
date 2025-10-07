@@ -40,8 +40,12 @@
         margin-top: 5px;
         color: #ffd700; /* Dourado para contraste */
     }
+    p {
+        font-size: 1.2em;
+        margin-top: 5px;
+        color: #ffd700; /* Dourado para contraste */
+    }
 
-    /* Estilo dos botões/links do menu */
     .menu-link {
         display: block;
         width: 90%; /* Ocupa a maior parte do container */
