@@ -1,138 +1,57 @@
-# Ferramentas MTG - Multi-Deck Feature Branch
+# **Ferramentas MTG \- Versão 5.0 (Cloud Sync e Multi-Usuário)**
 
-Este é um branch de desenvolvimento que adiciona suporte para rastreamento de múltiplos decks no Match Tracker.
+Este repositório contém uma suíte de ferramentas para jogadores de Magic: The Gathering, focado em rastreamento de partidas e análise estatística.
 
-## 🆕 Novidades Nesta Versão
+## **🚀 Onde Acessar as Ferramentas**
 
-### Multi-Deck Match Tracker
-Agora você pode rastrear estatísticas para múltiplos decks simultaneamente, não apenas Amulet Titan!
+| Ferramenta | Link de Acesso | Descrição |
+| :---- | :---- | :---- |
+| **Deck Stats Tracker (V3)** | [Acessar Deck Tracker](https://franciscoclaudio.github.io/mtg_tools/Deck_Tracker_V3.html) | Rastreamento de partidas com sincronização em nuvem, multi-usuário e multi-formato. |
+| **Menu Principal** | [Acessar Menu](https://franciscoclaudio.github.io/mtg_tools/Ferramentas_MTG.html) | Menu para navegação fácil entre as ferramentas. |
+| **Calculadora Hipergeométrica** | [Acessar Calculadora](https://www.google.com/search?q=https://franciscoclaudio.github.io/mtg_tools/calculadora_mtg.html) | Calcula a probabilidade de abertura de mãos (cálculo de "outs"). |
 
-**Principais Recursos:**
-- **Múltiplos Decks**: Crie e gerencie estatísticas para quantos decks quiser
-- **Dados Separados**: Cada deck mantém suas próprias estatísticas e histórico de partidas
-- **Seleção Rápida**: Troque entre decks facilmente para ver estatísticas específicas
-- **Importação/Exportação**: Sistema melhorado que mantém os dados de todos os decks
-- **Retrocompatibilidade**: Importa dados antigos do Amulet Titan Tracker automaticamente
+## **🆕 Deck Stats Tracker (V3) \- Novidades e Recursos Principais**
 
+A versão **V3** do Deck Tracker representa a maior atualização da ferramenta, introduzindo sincronização na nuvem e suporte a múltiplos usuários e formatos.
 
-## 🚀 Todas as Ferramentas
-https://franciscoclaudio.github.io/mtg_tools/Ferramentas_MTG.html
+### **1\. Sincronização em Nuvem (Firebase)**
 
-## DECK STATS TRACKER
-https://franciscoclaudio.github.io/mtg_tools/Deck_Tracker_V3.html
+* **Dados Persistentes:** Suas estatísticas e histórico de partidas são salvos e carregados automaticamente via **Firebase Realtime Database**.  
+* **Acesso de Qualquer Lugar:** Acesse seus dados em qualquer dispositivo sem precisar de importação manual.
 
-### 1. Criar um Novo Deck
-- Abra `Multi_Deck_Tracker.html`
-- No seletor "Selecione seu Deck Atual", escolha "--- Criar Novo Deck ---"
-- Digite o nome do deck (ex: "Tameshi Belcher", "Boros Energy")
-- Clique em "Criar Deck"
+### **2\. Multi-Usuário e Multi-Formato**
 
-### 2. Registrar Partidas
-- Selecione o deck que você está jogando no topo da página
-- Escolha o deck oponente
-- Registre os resultados de G1, G2 e G3
-- Clique em "Registrar Partida"
+* **Seleção de Usuário:** Ao abrir o Tracker, selecione ou registre seu nome de usuário (ex: Chico, Capi, Maciel). Seus dados são isolados e salvos em seu perfil.  
+* **Seleção de Formato:** Crie e gerencie decks em diferentes formatos (Modern, Pioneer, Legacy, Standard, Pauper), com listas de metagame pré-definidas para o oponente.
 
-### 3. Visualizar Estatísticas
-- As estatísticas gerais mostram o desempenho do deck atualmente selecionado
-- Use o seletor "Estatísticas por Matchup" para ver como você se sai contra decks específicos
-- Troque de deck no topo para ver estatísticas de outros decks
+### **3\. Rastreamento Multi-Deck Completo**
 
-### 4. Compartilhar Dados com Amigos
-- **Exportar**: Clique em "Exportar Dados" para baixar um arquivo `.txt` com todos os seus decks
-- **Importar**: Clique em "Importar Dados" para adicionar dados de amigos aos seus
+* **Estatísticas por Deck:** Crie e acompanhe o Win Rate (por Match e por Game), além do detalhamento de Win Rate por Game 1, Game 2 e Game 3 para **cada deck** que você joga.  
+* **Estatísticas por Matchup:** Filtre as estatísticas para ver seu desempenho exato contra decks específicos (ex: Amulet Titan vs. Murktide Regent).
 
-## 📁 Estrutura de Arquivos
+### **4\. Gestão de Dados**
 
-```
-mtg_tools/
-├── Ferramentas_MTG.html          # Menu principal
-├── Multi_Deck_Tracker.html       # 🆕 Novo tracker multi-deck
-├── Amulet_tracker_4.0.html       # Tracker original (mantido)
-├── calculadora_mtg.html          # Calculadora hipergeométrica
-└── img/                          # Imagens de fundo
-```
+* **Exportar Dados:** Baixe um arquivo JSON com todos os seus dados (de todos os formatos e decks) a qualquer momento.  
+* **Importar Dados:** Adicione dados de amigos ou reimporte backups. O sistema é capaz de **migrar automaticamente** a estrutura antiga de decks para a nova estrutura de formatos.
 
-## 💾 Formato dos Dados
+## **📝 Guia Rápido do Tracker (V3)**
 
-Os dados agora são estruturados por deck:
+1. **Selecione o Usuário:** Use o dropdown "Selecione o Usuário" para carregar seus dados ou a opção **"--- Novo Usuário \---"** para se registrar na nuvem.  
+2. **Selecione o Formato:** Escolha o formato que deseja jogar (ex: Modern).  
+3. **Selecione/Crie o Deck:**  
+   * Escolha um deck existente na lista ou use a opção **"--- Criar Novo Deck \---"** para registrar um novo deck naquele formato.  
+   * Após a criação, o novo deck será automaticamente selecionado.  
+4. **Registre a Partida:**  
+   * Selecione o **Deck Oponente**. Use **"--- Nova Matchup (Manual) \---"** se não estiver na lista do Metagame.  
+   * Registre os resultados de G1, G2 e G3.  
+   * Clique em **"Registrar Partida"**.  
+5. **Visualize Estatísticas:** Use o seletor **"Estatísticas por Matchup"** para analisar o desempenho contra decks específicos.
 
-```json
-{
-  "Amulet Titan": [
-    {
-      "timestamp": "2025-01-15T10:30:00.000Z",
-      "deckProprio": "Amulet Titan",
-      "deckOponente": "Boros Energy",
-      "g1Result": "win",
-      "g2Result": "loss",
-      "g3Result": "win"
-    }
-  ],
-  "Murktide Regent": [
-    {
-      "timestamp": "2025-01-15T14:20:00.000Z",
-      "deckProprio": "Murktide Regent",
-      "deckOponente": "Living End",
-      "g1Result": "win",
-      "g2Result": "win",
-      "g3Result": "not_played"
-    }
-  ]
-}
-```
+## **💾 Estrutura de Arquivos**
 
-## 🔄 Migração de Dados Antigos
-
-Se você já usa o Amulet Titan Tracker:
-
-1. Abra o tracker antigo (`Amulet_tracker_4.0.html`)
-2. Exporte seus dados
-3. Abra o novo Multi-Deck Tracker
-4. Importe o arquivo exportado
-5. Os dados serão automaticamente organizados sob "Amulet Titan"
-
-## 🧪 Status do Branch
-
-**Branch:** `multi-deck-feature`  
-**Status:** Em Testes  
-**Versão:** 5.0-beta
-
-### Testado ✅
-- Criação de múltiplos decks
-- Registro de partidas
-- Cálculo de estatísticas
-- Export/Import de dados
-- Compatibilidade com navegadores modernos
-
-### A Fazer 🚧
-- [ ] Versão com Firebase (cloud sync)
-- [ ] Sistema de autenticação para múltiplos usuários
-- [ ] Gráficos de evolução de winrate ao longo do tempo
-- [ ] Comparação entre decks
-- [ ] Tags/categorias para decks (Tier 1, Tier 2, etc.)
-
-## 🤝 Uso Compartilhado Entre Amigos
-
-### Cenário Atual (Local Storage)
-Cada pessoa mantém seus próprios dados. Para compartilhar:
-- Exporte seu arquivo periodicamente
-- Compartilhe com amigos via WhatsApp/Discord/etc
-- Cada um importa o arquivo dos outros
-- Os dados são mesclados automaticamente
-
-### Próxima Versão (Firebase)
-Em desenvolvimento: sincronização em tempo real na nuvem para que todos vejam os dados de todos instantaneamente.
-
-## 🐛 Reportar Problemas
-
-Encontrou um bug? Abra uma issue no GitHub ou entre em contato.
-
-## 📝 Licença
-
-Uso pessoal e comunitário. Mantenha a referência aos autores originais ao modificar.
-
----
-
-**Desenvolvido para a comunidade de Magic: The Gathering**  
-*Branch criado em: Janeiro 2025*
+mtg\_tools/  
+├── Ferramentas\_MTG.html          \# Menu principal  
+├── Deck\_Tracker\_V3.html          \# Tracker Multi-Usuário/Formato (Cloud Sync)  
+├── Deck\_Tracker\_V1.html          \# Versão Antiga (Ex-Amulet Tracker 4.0)  
+├── calculadora\_mtg.html          \# Calculadora hipergeométrica  
+└── img/                          \# Imagens de fundo  
