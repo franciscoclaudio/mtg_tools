@@ -163,11 +163,17 @@
             </div>
             
             <form id="new-deck-form">
-                <label for="new-deck-input">Novo Deck Próprio:</label>
-                <input type="text" id="new-deck-input" placeholder="Ex: Amulet Titan" required>
+                <label for="new-deck-creation-select">Adicionar Deck Próprio:</label>
+                <select id="new-deck-creation-select" required>
+                    </select>
+                
+                <div id="custom-deck-name-container" style="display: none; margin-top: -10px;">
+                    <label for="custom-deck-input">Nome do Deck Personalizado:</label>
+                    <input type="text" id="custom-deck-input" placeholder="Ex: Deck Rinoceronte de Amuletos">
+                </div>
+                
                 <button type="submit">Adicionar Deck</button>
             </form>
-
             <select id="deck-select" style="display: none;">
                 <option value="">-- Selecione o Deck Próprio --</option>
             </select>
@@ -259,15 +265,21 @@
         let selectedUser = null;
         let currentFormat = 'Modern'; 
         const NOVA_MATCHUP_OPCAO = 'Novo Deck';
+        const NOVO_DECK_PERSONALIZADO_OPCAO = 'Novo Deck Personalizado'; // Nova constante
 
         // Elementos do DOM
         const userSelector = document.getElementById('user-select');
-        const userForm = document.getElementById('user-form'); // Adicionado
+        const userForm = document.getElementById('user-form');
         const newUserInput = document.getElementById('new-user-input');
         const deckListContainer = document.getElementById('deck-list');
-        const newDeckForm = document.getElementById('new-deck-form');
-        const newDeckInput = document.getElementById('new-deck-input');
         const deckSelector = document.getElementById('deck-select'); 
+        
+        // Novos elementos para criação de deck
+        const newDeckForm = document.getElementById('new-deck-form');
+        const newDeckCreationSelect = document.getElementById('new-deck-creation-select');
+        const customDeckNameContainer = document.getElementById('custom-deck-name-container');
+        const customDeckInput = document.getElementById('custom-deck-input');
+
         const deckOponenteSelect = document.getElementById('deck-oponente-select');
         const matchupSelect = document.getElementById('matchup-select');
         const novaMatchupContainer = document.getElementById('nova-matchup-container');
@@ -336,8 +348,6 @@
                 userSelector.appendChild(option);
             });
             userSelector.innerHTML += '<option value="Novo Usuário">Novo Usuário</option>';
-            
-            // Garante que o formulário de novo usuário esteja escondido ao carregar
             userForm.style.display = 'none'; 
         }
 
@@ -355,6 +365,32 @@
             popularDropdowns(); 
             updateStatsDisplay(null);
         }
+        
+        function popularNewDeckCreationSelect() {
+            const metagameDecks = METAGAME_DECKS_BY_FORMAT[currentFormat] || ['Outro'];
+            
+            newDeckCreationSelect.innerHTML = '<option value="">-- Selecione um Deck do Metagame ou Crie um Novo --</option>';
+
+            // Adiciona a opção para criar um deck personalizado
+            let customOption = document.createElement('option');
+            customOption.value = NOVO_DECK_PERSONALIZADO_OPCAO;
+            customOption.textContent = `-- ${NOVO_DECK_PERSONALIZADO_OPCAO} --`;
+            newDeckCreationSelect.appendChild(customOption);
+            
+            // Adiciona os decks do Metagame (ordenados)
+            metagameDecks.sort().forEach(deck => {
+                const option = document.createElement('option');
+                option.value = deck;
+                option.textContent = deck;
+                newDeckCreationSelect.appendChild(option);
+            });
+            
+            // Garante que o campo de texto personalizado esteja escondido ao popular
+            customDeckNameContainer.style.display = 'none';
+            customDeckInput.removeAttribute('required');
+            customDeckInput.value = ''; // Limpa o valor
+        }
+
 
         function popularDropdowns() {
             const selectedDeck = deckSelector.value; 
@@ -367,6 +403,7 @@
                 deckOponenteSelect.innerHTML = '<option value="">-- Selecione o Deck Oponente --</option>';
                 matchupSelect.innerHTML = '<option value="">-- Selecione o Matchup --</option>';
                 displayDiv.style.display = 'none';
+                popularNewDeckCreationSelect(); // Popula o seletor de criação mesmo sem dados de usuário/formato
                 return;
             }
 
@@ -401,7 +438,10 @@
             
             deckSelector.value = selectedDeck;
 
-            // 2. Popula o Seletor de Deck Oponente
+            // 2. Popula o Seletor de Criação de Deck (Metagame + Custom)
+            popularNewDeckCreationSelect();
+
+            // 3. Popula o Seletor de Deck Oponente
             deckOponenteSelect.innerHTML = '<option value="">-- Selecione o Deck Oponente --</option>';
             const metagameDecks = METAGAME_DECKS_BY_FORMAT[currentFormat] || ['Outro'];
 
@@ -415,7 +455,7 @@
             });
             deckOponenteSelect.innerHTML += `<option value="${NOVA_MATCHUP_OPCAO}">-- ${NOVA_MATCHUP_OPCAO} --</option>`;
 
-            // 3. Popula o Seletor de Matchup
+            // 4. Popula o Seletor de Matchup
             const matchups = [...new Set(formatData[selectedDeck] ? formatData[selectedDeck].map(m => m.deckOponente) : [])];
 
             matchupSelect.innerHTML = '<option value="">-- Mostrar Todos os Matchups --</option>';
@@ -429,6 +469,8 @@
             displayDiv.style.display = selectedDeck ? 'block' : 'none';
             updateStatsDisplay(null);
         }
+
+        // --- (Resto das funções de lógica (updateStatsDisplay, addMatch, deleteMatch, etc.) permanece o mesmo) ---
 
         function updateStatsDisplay(matchup) {
             const selectedDeck = deckSelector.value;
@@ -644,43 +686,75 @@
             selectedUser = newUserInput.value.trim();
             if (selectedUser && !allMatches[selectedUser]) {
                 allMatches[selectedUser] = {};
-                saveData(); // Salva o novo usuário vazio
+                saveData(); 
                 popularUserSelector();
                 userSelector.value = selectedUser;
-                userForm.style.display = 'none'; // Esconde o form após criar
+                userForm.style.display = 'none'; 
                 popularDropdowns();
             } else if (selectedUser) {
                 alert(`Usuário ${selectedUser} já existe. Por favor, selecione-o na lista.`);
             }
         });
 
-        // NOVO LISTENER: Controle de visibilidade do formulário de usuário
+        // Controle de visibilidade do formulário de usuário
         userSelector.addEventListener('change', (e) => {
             selectedUser = e.target.value;
             
             if (selectedUser === 'Novo Usuário') {
-                userForm.style.display = 'block'; // Mostra o formulário
+                userForm.style.display = 'block'; 
                 newUserInput.focus();
                 selectedUser = null; 
                 deckSelector.value = ''; 
                 popularDropdowns();
             } else if (selectedUser) {
-                userForm.style.display = 'none'; // Esconde o formulário
+                userForm.style.display = 'none'; 
                 deckSelector.value = ''; 
                 popularDropdowns();
             } else {
-                userForm.style.display = 'none'; // Esconde o formulário
+                userForm.style.display = 'none'; 
                 deckSelector.value = ''; 
                 popularDropdowns();
             }
         });
 
-        document.getElementById('new-deck-form').addEventListener('submit', (e) => {
+        // NOVO LISTENER: Visibilidade do campo de texto personalizado
+        newDeckCreationSelect.addEventListener('change', (e) => {
+            if (e.target.value === NOVO_DECK_PERSONALIZADO_OPCAO) {
+                customDeckNameContainer.style.display = 'block';
+                customDeckInput.setAttribute('required', 'required');
+                customDeckInput.focus();
+            } else {
+                customDeckNameContainer.style.display = 'none';
+                customDeckInput.removeAttribute('required');
+                customDeckInput.value = ''; // Limpa o valor
+            }
+        });
+
+
+        // Lógica para Adicionar Deck Próprio (usando o select ou o input personalizado)
+        newDeckForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const newDeckName = newDeckInput.value.trim();
             
+            const selectedOption = newDeckCreationSelect.value;
+            let newDeckName = '';
+
+            // 1. Determina o nome do deck
+            if (selectedOption === NOVO_DECK_PERSONALIZADO_OPCAO) {
+                newDeckName = customDeckInput.value.trim();
+                if (!newDeckName) {
+                    alert("Por favor, forneça um nome para o novo deck personalizado.");
+                    return;
+                }
+            } else if (selectedOption) {
+                newDeckName = selectedOption; // Deck selecionado do metagame
+            } else {
+                alert('Selecione um deck do Metagame ou crie um Novo Deck Personalizado.');
+                return;
+            }
+            
+            // 2. Validações e Adição
             if (deckSelector.value === newDeckName) {
-                alert("Este deck já está selecionado.");
+                alert("Este deck já está selecionado como seu deck atual.");
                 return;
             }
 
@@ -696,13 +770,19 @@
                 allMatches[selectedUser][currentFormat][newDeckName] = [];
                 saveData();
                 
+                // Seleciona o deck recém-criado
                 deckSelector.value = newDeckName; 
                 
                 popularDropdowns();
                 updateStatsDisplay(null);
-                newDeckInput.value = '';
-            } else {
-                alert('Selecione um usuário e um formato e forneça um nome para o novo deck.');
+                
+                // Limpeza dos campos
+                newDeckCreationSelect.value = '';
+                customDeckInput.value = '';
+                customDeckNameContainer.style.display = 'none';
+
+            } else if (!selectedUser) {
+                alert('Selecione um usuário e um formato antes de adicionar um deck.');
             }
         });
 
