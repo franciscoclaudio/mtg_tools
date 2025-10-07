@@ -95,45 +95,32 @@
             min-height: 50px;
             background-color: #333;
         }
+        /* ESTILOS NOVOS PARA O DECK LIST */
         .deck-list {
             max-height: 200px;
             overflow-y: auto;
             border: 1px solid #555;
-            padding: 10px;
+            padding: 0 10px; /* Ajuste para melhor visualização */
             margin-bottom: 15px;
+            border-radius: 4px;
         }
-        .deck-list div {
-            padding: 5px;
+        .deck-item {
+            padding: 8px 10px;
             border-bottom: 1px solid #444;
             cursor: pointer;
             transition: background-color 0.2s;
         }
-        .deck-list div:hover {
+        .deck-item:last-child {
+             border-bottom: none; /* Remove a linha do último item */
+        }
+        .deck-item:hover {
             background-color: #444;
         }
-        .matchup-list {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 0;
-            border-bottom: 1px solid #444;
-            font-size: 0.9em;
-        }
-        .matchup-list span {
-            display: inline-block;
-            padding: 2px 5px;
-            border-radius: 3px;
+        .deck-item.selected {
+            background-color: #a87e50; /* Cor de destaque */
+            color: #fff;
             font-weight: bold;
-        }
-        .win { background-color: #32a852; color: white; }
-        .loss { background-color: #a83232; color: white; }
-        .draw { background-color: #a8a832; color: black; }
-        .not_played { background-color: #555; color: white; }
-        .matchup-delete {
-            cursor: pointer;
-            color: #ff4d4d;
-            font-weight: bold;
-            margin-left: 10px;
+            border-left: 5px solid #27883d;
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
@@ -160,7 +147,6 @@
         </div>
 
         <div id="deck-selection" style="margin-top: 20px;">
-            <h4>Selecione o Formato e o Deck Próprio</h4>
             <label for="formato-select">Formato:</label>
             <select id="formato-select">
                 <option value="Modern">Modern</option>
@@ -169,9 +155,20 @@
                 <option value="Standard">Standard</option>
                 <option value="Pauper">Pauper</option>
             </select>
+
+            <h4>Selecione Seu Deck Atual</h4>
             
-            <label for="deck-select">Seu Deck:</label>
-            <select id="deck-select">
+            <div id="deck-list" class="deck-list">
+                <p style="color:#aaa; padding: 10px 0;">Selecione um Usuário e um Formato para carregar.</p>
+            </div>
+            
+            <form id="new-deck-form">
+                <label for="new-deck-input">Novo Deck Próprio:</label>
+                <input type="text" id="new-deck-input" placeholder="Ex: Amulet Titan" required>
+                <button type="submit">Adicionar Deck</button>
+            </form>
+
+            <select id="deck-select" style="display: none;">
                 <option value="">-- Selecione o Deck Próprio --</option>
             </select>
             
@@ -258,17 +255,25 @@
         const database = firebase.database();
 
         // Variáveis globais
-        // NOVA ESTRUTURA: {usuario: {formato: {deck: [{match}, {match}, ...]}}}
+        // ESTRUTURA: {usuario: {formato: {deck: [{match}, {match}, ...]}}}
         let allMatches = {}; 
         let selectedUser = null;
-        const NOVA_MATCHUP_OPCAO = 'Novo Deck';
         let currentFormat = 'Modern'; 
+        const NOVA_MATCHUP_OPCAO = 'Novo Deck';
 
         // Elementos do DOM
         const userSelector = document.getElementById('user-select');
         const userManagementDiv = document.getElementById('user-management');
         const newUserInput = document.getElementById('new-user-input');
-        const deckSelector = document.getElementById('deck-select');
+        
+        // Novos elementos para o novo layout de seleção de deck
+        const deckListContainer = document.getElementById('deck-list');
+        const newDeckForm = document.getElementById('new-deck-form');
+        const newDeckInput = document.getElementById('new-deck-input');
+
+        // SELECT escondido (mantido para compatibilidade de valor)
+        const deckSelector = document.getElementById('deck-select'); 
+
         const deckOponenteSelect = document.getElementById('deck-oponente-select');
         const matchupSelect = document.getElementById('matchup-select');
         const novaMatchupContainer = document.getElementById('nova-matchup-container');
@@ -278,7 +283,6 @@
         const displayDiv = document.getElementById('data-display');
         const fileInput = document.getElementById('file-input');
         const formatoSelect = document.getElementById('formato-select');
-
 
         // Metagames por Formato (LISTAS DE DECK)
         const METAGAME_DECKS_BY_FORMAT = {
@@ -342,14 +346,34 @@
             userManagementDiv.style.display = 'block';
         }
 
+        function selectDeckFromList(e) {
+            const newDeck = e.target.dataset.deckName;
+            const currentSelectedDeck = deckSelector.value;
+            
+            if (newDeck === currentSelectedDeck) return; // Não faz nada se for o mesmo deck
+            
+            // Atualiza o select escondido (o valor que o resto do JS usa)
+            deckSelector.value = newDeck; 
+
+            // Remove a seleção de todos os itens e adiciona ao item clicado
+            document.querySelectorAll('.deck-item').forEach(div => div.classList.remove('selected'));
+            e.target.classList.add('selected');
+            
+            // Re-popula os dropdowns (oponente/matchup) e atualiza estatísticas
+            popularDropdowns(); 
+            updateStatsDisplay(null);
+        }
+
         function popularDropdowns() {
+            const selectedDeck = deckSelector.value; // Pega o deck atualmente selecionado
             // matchData: {formato: {deck: [...]}}
             const matchData = allMatches[selectedUser]; 
             // formatData: {deck: [...]}
             const formatData = matchData ? matchData[currentFormat] : null;
 
-            // Se não houver dados ou usuário selecionado, esconde tudo
+            // Se não houver dados ou usuário/formato selecionado
             if (!selectedUser || !formatData) {
+                deckListContainer.innerHTML = '<p style="color:#aaa; padding: 10px 0;">Selecione um Usuário e um Formato para carregar.</p>';
                 deckSelector.innerHTML = '<option value="">-- Selecione o Deck Próprio --</option>';
                 deckOponenteSelect.innerHTML = '<option value="">-- Selecione o Deck Oponente --</option>';
                 matchupSelect.innerHTML = '<option value="">-- Selecione o Matchup --</option>';
@@ -357,27 +381,49 @@
                 return;
             }
 
-            // 1. Popula o Seletor de Deck Próprio
+            // 1. Popula o Seletor de Deck Próprio (Lista Visual e Select Escondido)
             const decks = Object.keys(formatData); // Pega decks dentro do formato
+            
+            // Limpa o select escondido
             deckSelector.innerHTML = '<option value="">-- Selecione o Deck Próprio --</option>';
+            
+            // Limpa e popula o container visual
+            deckListContainer.innerHTML = '';
+            if (decks.length === 0) {
+                deckListContainer.innerHTML = '<p style="color:#aaa; padding: 10px 0;">Nenhum deck encontrado neste formato. Adicione um abaixo.</p>';
+            }
+
             decks.forEach(deck => {
+                // Popula o SELECT escondido
                 const option = document.createElement('option');
                 option.value = deck;
                 option.textContent = deck;
                 deckSelector.appendChild(option);
+
+                // Popula o Container Visual (deckListContainer)
+                const deckDiv = document.createElement('div');
+                deckDiv.textContent = deck;
+                deckDiv.dataset.deckName = deck;
+                deckDiv.classList.add('deck-item'); 
+                
+                if (deck === selectedDeck) {
+                    deckDiv.classList.add('selected');
+                }
+                
+                deckDiv.addEventListener('click', selectDeckFromList);
+                deckListContainer.appendChild(deckDiv);
             });
-            deckSelector.innerHTML += '<option value="Novo Deck">Novo Deck</option>';
+            
+            // Re-seleciona o valor no select escondido
+            deckSelector.value = selectedDeck;
 
 
             // 2. Popula o Seletor de Deck Oponente
-            const selectedDeck = deckSelector.value;
             deckOponenteSelect.innerHTML = '<option value="">-- Selecione o Deck Oponente --</option>';
-
-            // Lista de Decks baseada no formato atual
             const metagameDecks = METAGAME_DECKS_BY_FORMAT[currentFormat] || ['Outro'];
 
             metagameDecks.forEach(deck => {
-                if (deck !== selectedDeck) { // Não lista o próprio deck como oponente
+                if (deck !== selectedDeck) {
                     const option = document.createElement('option');
                     option.value = deck;
                     option.textContent = deck;
@@ -397,9 +443,14 @@
                 matchupSelect.appendChild(option);
             });
 
+            // Mostra/Esconde a seção de dados
             displayDiv.style.display = selectedDeck ? 'block' : 'none';
             updateStatsDisplay(null);
         }
+
+        // Funções updateStatsDisplay, addMatch, deleteMatch, handleFileSelect, exportData
+        // (Mantêm a lógica do código anterior, agora usando deckSelector.value para o deck)
+        // ... (resto das funções de lógica mantidas)
 
         function updateStatsDisplay(matchup) {
             const selectedDeck = deckSelector.value;
@@ -574,8 +625,11 @@
                             
                             saveData();
                             alert(`Dados do deck "${deckName}" importados com sucesso para o usuário ${selectedUser} no formato ${currentFormat}!`);
-                            popularDropdowns();
+                            
+                            // Seleciona o deck importado
                             deckSelector.value = deckName;
+                            
+                            popularDropdowns();
                             updateStatsDisplay(null);
                         } else {
                             alert("Estrutura do arquivo JSON inválida. Deve ser no formato {\"Nome do Deck\": [...]}.");
@@ -639,18 +693,55 @@
             }
         });
 
+        // NOVO LISTENER: Adicionar Deck
+        newDeckForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newDeckName = newDeckInput.value.trim();
+            
+            if (deckSelector.value === newDeckName) {
+                alert("Este deck já está selecionado.");
+                return;
+            }
+
+            if (newDeckName && selectedUser && currentFormat) {
+                // Cria um novo nó de deck vazio
+                if (!allMatches[selectedUser]) allMatches[selectedUser] = {};
+                if (!allMatches[selectedUser][currentFormat]) allMatches[selectedUser][currentFormat] = {};
+
+                if (allMatches[selectedUser][currentFormat][newDeckName]) {
+                    alert(`O deck "${newDeckName}" já existe neste formato.`);
+                    return;
+                }
+
+                allMatches[selectedUser][currentFormat][newDeckName] = [];
+                saveData();
+                
+                // Atualiza o select escondido e a lista visual
+                deckSelector.value = newDeckName; 
+                
+                popularDropdowns(); // Re-popula a lista (e o select escondido)
+                updateStatsDisplay(null);
+                newDeckInput.value = ''; // Limpa o campo
+            } else {
+                alert('Selecione um usuário e um formato e forneça um nome para o novo deck.');
+            }
+        });
+
         userSelector.addEventListener('change', (e) => {
             selectedUser = e.target.value;
             if (selectedUser === 'Novo Usuário') {
                 userManagementDiv.style.display = 'block';
                 newUserInput.focus();
                 selectedUser = null; 
+                deckSelector.value = ''; // Limpa a seleção de deck
                 popularDropdowns();
             } else if (selectedUser) {
                 userManagementDiv.style.display = 'none';
+                deckSelector.value = ''; // Limpa a seleção de deck
                 popularDropdowns();
             } else {
                 userManagementDiv.style.display = 'none';
+                deckSelector.value = ''; // Limpa a seleção de deck
                 popularDropdowns();
             }
         });
@@ -658,16 +749,14 @@
         // Listener para o Seletor de Formato
         formatoSelect.addEventListener('change', (e) => {
             currentFormat = e.target.value;
+            deckSelector.value = ''; // Limpa a seleção de deck ao trocar o formato
             // Re-popula os dropdowns com os decks do novo formato
             popularDropdowns();
             updateStatsDisplay(matchupSelect.value); 
         });
 
-        deckSelector.addEventListener('change', (e) => {
-            // Quando o deck próprio muda, atualiza o histórico e matchups
-            popularDropdowns();
-            updateStatsDisplay(null);
-        });
+        // O evento change no deckSelector agora é desnecessário, pois a função popularDropdowns
+        // já é chamada pelos listeners de click na lista e format/user change.
 
         document.getElementById('matchup-form').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -682,7 +771,7 @@
             }
 
             if (!deckProprio || !deckOponente || !selectedUser) {
-                alert('Por favor, preencha todos os campos e selecione um usuário/deck.');
+                alert('Por favor, preencha todos os campos e selecione um deck próprio.');
                 return;
             }
 
