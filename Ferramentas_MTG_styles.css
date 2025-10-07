@@ -1,12 +1,10 @@
     <style>
-        /* Cores Temáticas do Amulet Tracker: #27883d (Verde Principal), #a87e50 (Terracota/Terra), #3a2e22 (Fundo Escuro) */
-        
         body {
             font-family: 'Arial', sans-serif;
             margin: 0;
             color: #d8d8d8;
-            background-color: #3a2e22; 
-        }
+            background-color: #3a2e22;
+         }
         .container {
             max-width: 500px; /* Mais estreito para um menu */
             margin: 80px auto;
