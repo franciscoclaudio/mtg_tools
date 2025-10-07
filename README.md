@@ -21,7 +21,7 @@ https://franciscoclaudio.github.io/mtg_tools/Ferramentas_MTG.html
 ### 1. Criar um Novo Deck
 - Abra `Multi_Deck_Tracker.html`
 - No seletor "Selecione seu Deck Atual", escolha "--- Criar Novo Deck ---"
-- Digite o nome do deck (ex: "Murktide Regent", "Yawgmoth")
+- Digite o nome do deck (ex: "Tameshi Belcher", "Boros Energy")
 - Clique em "Criar Deck"
 
 ### 2. Registrar Partidas
