@@ -19,7 +19,7 @@ Este repositório contém uma suíte de ferramentas para jogadores de Magic: The
 | :---- | :---- | :---- |
 | **Menu Principal** | [Acessar Menu](https://franciscoclaudio.github.io/mtg_tools/Ferramentas_MTG.html) | Menu para navegação fácil entre as ferramentas. |
 | **Deck Stats Tracker (V3)** | [Acessar Deck Tracker](https://franciscoclaudio.github.io/mtg_tools/Deck_Tracker_V3.html) | Rastreamento de partidas com sincronização em nuvem, multi-usuário e multi-formato. |
-| **Calculadora Hipergeométrica** | [Acessar Calculadora](https://www.google.com/search?q=https://franciscoclaudio.github.io/mtg_tools/calculadora_mtg.html) | Calcula a probabilidade de abertura de mãos (cálculo de "outs"). |
+| **Calculadora Hipergeométrica** | [Acessar Calculadora](https://franciscoclaudio.github.io/mtg_tools/calculadora_mtg.html) | Calcula a probabilidade de abertura de mãos (cálculo de "outs"). |
 
 ## **🆕 Deck Stats Tracker (V3) \- Novidades e Recursos Principais**
 
