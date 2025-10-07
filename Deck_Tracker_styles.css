@@ -1,200 +1,194 @@
-    <style>
-    body {
-        font-family: 'Arial', sans-serif;
-        margin: 0;
-        color: #d8d8d8;
-        background-color: #3a2e22;
-     }
-    .container {
-        max-width: 750px;
-        margin: 40px auto;
-        background: rgba(30, 30, 30, 0.95);
-         padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
-        border: 3px solid #a87e50;
-    }
-    header {
-        text-align: center;
-        margin-bottom: 30px;
-        /* Alterações de Fundo para tireless_tracker.jpg */
-        background-image: url('./img/tireless_tracker.jpg'); /* Nome do arquivo: tireless_tracker.jpg */
-        background-size: cover; /* Garante que a imagem cubra a área */
-        background-position: center 20%; /* Centraliza a imagem no eixo X e move 20% para baixo */
-        background-color: #27883d; /* Cor de fallback */
-        padding: 15px;
-        border-radius: 8px;
-        position: relative; /* Necessário para z-index do pseudo-elemento */
-        overflow: hidden; /* Oculta partes da imagem que possam extrapolar */
-    }
-    /* Overlay para o Header */
-    header::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.4); /* Escurece a imagem para destacar o texto */
-        z-index: 1;
-    }
-    /* Z-index para o conteúdo do Header */
-    header h1, header h2 {
-        position: relative;
-        z-index: 2;
-    }
-    h1, h2 {
-        color: #fff;
-        margin: 0;
-        text-shadow: 1px 1px 3px #000;
-    }
-    h2 {
-        font-size: 1.2em;
-        margin-top: 10px;
-    }
-    h4 {
-        color: #a87e50;
-        text-align: center;
-        margin-top: 20px;
-        margin-bottom: 5px;
-    }
-    form, .stats-section, .deck-selector, .user-selector, .format-selector { /* Adicionado .format-selector */
-        background-color: #595959;
-         padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        border: 1px solid #737373;
-    }
-    .user-selector { /* Estilo específico para o seletor de usuário */
-        background-color: #3a2e22;
-        border: 2px solid #fff;
-    }
-    .deck-selector {
-        background-color: #27883d;
-        border: 2px solid #ffd700;
-    }
-    .deck-selector label, .user-selector label, .format-selector label {
-        color: #fff;
-    }
-    label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: bold;
-    }
-    input[type="number"], input[type="text"], select, button {
-        width: 100%;
-        padding: 12px;
-        margin-bottom: 15px;
-        border-radius: 6px;
-        border: 1px solid #27883d;
-        box-sizing: border-box;
-        background-color: #f0f0f0;
-        color: #3a2e22;
-    }
-    button {
-        background-color: #27883d;
-        color: white;
-        cursor: pointer;
-        font-weight: bold;
-        transition: background-color 0.3s;
-    }
-    button:hover {
-        background-color: #329f4b;
-    }
-    /* ... (Resto dos estilos permanece o mesmo) ... */
-    .stats-section {
-        display: flex;
-        justify-content: space-between;
-        text-align: center;
-    }
-    /* INÍCIO DA MODIFICAÇÃO PARA CORRIGIR A IMAGEM DE FUNDO */
-    .stats-section.general-stats {
-        /* Alterações de Fundo para laboratory_manic.jpg */
-        background-image: url('./img/laboratory_manic.jpg'); /* Nome do arquivo: laboratory_manic.jpg */
-        background-size: cover; /* Garante que a imagem cubra a área */
-        background-position: center; /* Centraliza a imagem no container */
-        background-color: #3a2e22;
-         position: relative;
-        overflow: hidden;
-        color: #fff;
-         /* display: block; <--- REMOVIDO: Mantém o padrão flex ou block, mas não sobrescreve de forma que possa atrapalhar o posicionamento dos filhos */
-     }
-    .stats-section.general-stats::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-         z-index: 1;
-    }
-    .stats-section.general-stats h2,
-    .stats-section.general-stats h4,
-    .stats-section.general-stats .stats-item {
-        position: relative;
-        z-index: 2; /* Garante que o conteúdo fique visível acima do overlay */
-    }
-    /* FIM DA MODIFICAÇÃO PARA CORRIGIR A IMAGEM DE FUNDO */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    color: #d8d8d8;
+    background-color: #3a2e22;
+ }
+.container {
+    max-width: 750px;
+    margin: 40px auto;
+    background: rgba(30, 30, 30, 0.95);
+     padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+    border: 3px solid #a87e50;
+}
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    /* Alteração com o caminho corrigido (../) */
+    background-image: url('../img/tireless_tracker.jpg'); 
+    background-size: cover; 
+    background-position: center 20%; 
+    background-color: #27883d; 
+    padding: 15px;
+    border-radius: 8px;
+    position: relative; 
+    overflow: hidden; 
+}
+/* Overlay para o Header */
+header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4); 
+    z-index: 1;
+}
+/* Z-index para o conteúdo do Header */
+header h1, header h2 {
+    position: relative;
+    z-index: 2;
+}
+h1, h2 {
+    color: #fff;
+    margin: 0;
+    text-shadow: 1px 1px 3px #000;
+}
+h2 {
+    font-size: 1.2em;
+    margin-top: 10px;
+}
+h4 {
+    color: #a87e50;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 5px;
+}
+form, .stats-section, .deck-selector, .user-selector, .format-selector { 
+    background-color: #595959;
+     padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #737373;
+}
+.user-selector { 
+    background-color: #3a2e22;
+    border: 2px solid #fff;
+}
+.deck-selector {
+    background-color: #27883d;
+    border: 2px solid #ffd700;
+}
+.deck-selector label, .user-selector label, .format-selector label {
+    color: #fff;
+}
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+input[type="number"], input[type="text"], select, button {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: 1px solid #27883d;
+    box-sizing: border-box;
+    background-color: #f0f0f0;
+    color: #3a2e22;
+}
+button {
+    background-color: #27883d;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+button:hover {
+    background-color: #329f4b;
+}
+.stats-section {
+    display: flex;
+    justify-content: space-between;
+    text-align: center;
+}
+.stats-section.general-stats {
+    /* Alteração com o caminho corrigido (../) */
+    background-image: url('../img/laboratory_manic.jpg'); 
+    background-size: cover; 
+    background-position: center; 
+    background-color: #3a2e22;
+     position: relative;
+    overflow: hidden;
+    color: #fff;
+ }
+.stats-section.general-stats::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+     z-index: 1;
+}
+.stats-section.general-stats h2,
+.stats-section.general-stats h4,
+.stats-section.general-stats .stats-item {
+    position: relative;
+    z-index: 2; 
+}
 
-    .stats-section.general-stats .stats-section {
-         display: flex;
-         background: none;
-         padding: 0;
-         margin-bottom: 0;
-         border: none;
-    }
-    .stats-item {
-        flex-grow: 1;
-        margin: 0 5px;
-        padding: 10px;
-        border-radius: 6px;
-        background-color: #3a2e22;
-        border: 1px solid #a87e50;
-    }
-    .stats-label {
-        font-size: 0.8em;
-        color: #ccc;
-    }
-    .stats-value {
-        font-size: 1.8em;
-        font-weight: bolder;
-        color: #a87e50;
-        margin-top: 5px;
-    }
-    #status {
-        text-align: center;
-        padding: 10px;
-        border-radius: 6px;
-        margin-top: 20px;
-        font-weight: bold;
-        background-color: #3a2e22;
-        border: 1px solid #737373;
-    }
-    .loading { color: #ffd700; }
-    .error { color: #ff6347; }
-    .success { color: #27883d; }
-    #matchup-stats-display {
-        display: none;
-        margin-top: 15px;
-        border-top: 1px dashed #a87e50;
-        padding-top: 15px;
-    }
-    #matchup-stats-display .stats-item {
-        background-color: #3a2e22;
-        border-color: #27883d;
-    }
-    #nova-matchup-container, #novo-deck-container, #novo-usuario-container { /* Adicionado #novo-usuario-container */
-        display: none;
-    }
-    .control-buttons {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-    .control-buttons button {
-        flex: 1;
-        margin-bottom: 0;
-        padding: 10px;
-    }
-</style>
+.stats-section.general-stats .stats-section {
+     display: flex;
+     background: none;
+     padding: 0;
+     margin-bottom: 0;
+     border: none;
+}
+.stats-item {
+    flex-grow: 1;
+    margin: 0 5px;
+    padding: 10px;
+    border-radius: 6px;
+    background-color: #3a2e22;
+    border: 1px solid #a87e50;
+}
+.stats-label {
+    font-size: 0.8em;
+    color: #ccc;
+}
+.stats-value {
+    font-size: 1.8em;
+    font-weight: bolder;
+    color: #a87e50;
+    margin-top: 5px;
+}
+#status {
+    text-align: center;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 20px;
+    font-weight: bold;
+    background-color: #3a2e22;
+    border: 1px solid #737373;
+}
+.loading { color: #ffd700; }
+.error { color: #ff6347; }
+.success { color: #27883d; }
+#matchup-stats-display {
+    display: none;
+    margin-top: 15px;
+    border-top: 1px dashed #a87e50;
+    padding-top: 15px;
+}
+#matchup-stats-display .stats-item {
+    background-color: #3a2e22;
+    border-color: #27883d;
+}
+#nova-matchup-container, #novo-deck-container, #novo-usuario-container { 
+    display: none;
+}
+.control-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.control-buttons button {
+    flex: 1;
+    margin-bottom: 0;
+    padding: 10px;
+}
