@@ -13,7 +13,7 @@
 |------------|---------------|-----------|
 | **🏠 Menu Principal** | [Acessar](https://franciscoclaudio.github.io/mtg_tools/Ferramentas_MTG.html) | Hub central para navegação entre ferramentas |
 | **📊 Deck Stats Tracker V3** | [Acessar](https://franciscoclaudio.github.io/mtg_tools/Deck_Tracker_V3.html) | Rastreamento avançado com cloud sync |
-| **🧮 Calculadora Hipergeométrica** | [Acessar](https://franciscoclaudio.github.io/mtg_tools/Calculadora_mtg.html) | Probabilidades de abertura de mão |
+| **🧮 Calculadora Hipergeométrica** | [Acessar](https://franciscoclaudio.github.io/mtg_tools/Calculadora_MTG.html) | Probabilidades de abertura de mão |
 
 ---
 
