@@ -9,6 +9,7 @@ body {
     margin: 0;
     color: #d8d8d8;
     background-color: #3a2e22 !important;
+    text-align: center; /* NOVO: Centraliza todos os textos por padrão */
 }
 
 .container {
@@ -34,7 +35,7 @@ body {
 }
 
 header {
-    text-align: center;
+    text-align: center; /* Mantido */
     margin-bottom: 30px;
     background-image: url('../img/tireless_tracker.jpg'); 
     background-size: cover; 
@@ -123,6 +124,8 @@ input[type="number"], input[type="text"], select, button {
     background-color: #f0f0f0;
     color: #3a2e22;
     transition: all 0.3s ease;
+    /* Manter texto do input/select à esquerda para melhor usabilidade */
+    text-align: left; 
 }
 
 input[type="number"]:focus,
@@ -288,6 +291,7 @@ button:disabled {
     border-radius: 8px;
     margin-top: 15px;
     border: 1px solid #a87e50;
+    text-align: center; /* Garantia de centralização */
 }
 
 #matchup-stats-display::before {
