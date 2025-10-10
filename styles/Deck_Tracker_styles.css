@@ -164,6 +164,7 @@ button:disabled {
 /* ============================================ */
 #stats-display {
     /* CORREÇÃO DO CAMINHO DA IMAGEM */
+    text-align: center;
     background-image: url('../img/laboratory_maniac.jpg'); 
     background-size: cover; 
     background-position: center; 
