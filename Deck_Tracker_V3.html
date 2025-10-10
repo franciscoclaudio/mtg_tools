@@ -199,21 +199,20 @@
         };
 
         // VARIÁVEIS MULTI-USUÁRIO
-        // Lista de usuários para o seletor inicial
         const USERS = ['Chico', 'Capi', 'Maciel', 'Avelã', 'Gominho'];
         const NOVO_USUARIO_OPCAO = 'NOVO_USUARIO';
         
         const NOVO_DECK_OPCAO = 'NOVO_DECK';
         const NOVA_MATCHUP_OPCAO = 'NOVA_MATCHUP';
         
-        // NOVO: Lista completa e padronizada de formatos (para a listagem completa)
+        // Lista completa e padronizada de formatos 
         const ALL_FORMATS = [
             'Standard', 'Pioneer', 'Modern', 'Legacy', 'Vintage', 
             'Commander', 'Pauper', 'Explorer', 'Alchemy', 'Brawl',
             'Draft', 'Sealed', 'Outros'
         ].sort(); 
 
-        // --- METAGAMES POR FORMATO --- (Usado para popular oponente)
+        // --- METAGAMES POR FORMATO --- 
         const METAGAME_DECKS_BY_FORMAT = {
             'Modern': [
                 'Esper Goryo\'s', 'Tameshi Belcher', 'Boros Energy', 'Eldrazi Tron',
@@ -247,7 +246,7 @@
         // VARIÁVEIS DE CONEXÃO E DADOS
         let firebaseApp = null;
         let dbRef = null; 
-        let allData = {}; // { FormatName: { decks: { DeckName: { matches } } } }
+        let allData = {}; 
 
         let currentUser = localStorage.getItem('lastUser') || null;
         let currentFormat = localStorage.getItem('lastFormat') || null;
@@ -337,13 +336,12 @@
                     currentFormatSelect.value = lastFormat;
                     currentFormat = lastFormat;
                     
-                    // Não salva o formato novamente, apenas carrega os decks
                     popularDeckSelector(); 
 
                     if (lastDeck && getCurrentDecks(lastFormat)[lastDeck]) {
                         currentDeck = lastDeck;
                         currentDeckSelect.value = lastDeck;
-                        onDeckChange(lastDeck, false); // Não salva o deck novamente
+                        onDeckChange(lastDeck, false); 
                     } else {
                         currentDeck = null;
                         onDeckChange(null);
@@ -437,7 +435,6 @@
                 currentDeckSelect.disabled = false;
                 popularDeckSelector(); 
                 
-                // Desativa controles de partida
                 matchFieldset.disabled = true;
                 matchupSelect.disabled = true;
             } else {
@@ -451,17 +448,30 @@
             updateStatsDisplay(null); 
         }
 
+        // FUNÇÃO CORRIGIDA PARA ATIVAR O FORMULÁRIO DE REGISTRO
         function onDeckChange(deckName, shouldSave = true) {
             if (shouldSave) {
                 localStorage.setItem('lastDeck', deckName);
             }
             
+            // Pega referências dos elementos
+            const deckOponenteSelect = document.getElementById('deck-oponente-select');
+            const playDrawSelect = document.getElementById('play-draw-select');
+            const g1Result = document.getElementById('g1-result');
+            const g2Result = document.getElementById('g2-result');
+            const g3Result = document.getElementById('g3-result');
+            const submitMatch = document.getElementById('submit-match');
+
+
             if (!deckName) { 
                 currentDeck = null;
                 novoDeckContainer.style.display = 'none';
                 document.getElementById('current-deck-name').textContent = 'Selecione um Deck';
+                
+                // Desativa Form
                 matchFieldset.disabled = true;
                 matchupSelect.disabled = true;
+                
                 updateStatsDisplay(null);
                 return;
             }
@@ -470,6 +480,8 @@
                 currentDeck = null;
                 novoDeckContainer.style.display = 'block';
                 novoDeckInput.focus();
+                
+                // Desativa Form
                 matchFieldset.disabled = true;
                 matchupSelect.disabled = true;
             } else {
@@ -478,8 +490,17 @@
                 document.getElementById('current-deck-name').textContent = deckName;
                 
                 // Reativa a interface de registro de partida
-                matchFieldset.disabled = false;
+                matchFieldset.disabled = false; // Ativa o container principal
 
+                // ATIVAÇÃO INDIVIDUAL DOS CONTROLES DO FORMULÁRIO
+                deckOponenteSelect.disabled = false;
+                playDrawSelect.disabled = false;
+                g1Result.disabled = false;
+                g2Result.disabled = false;
+                g3Result.disabled = false;
+                submitMatch.disabled = false;
+                matchupSelect.disabled = false; // Seletor de Matchup Stats
+                
                 // Atualiza as outras listas e estatísticas
                 popularDropdowns(); 
                 updateStatsDisplay(null); 
@@ -542,7 +563,6 @@
                     novoDeckContainer.style.display = 'none';
                     novoDeckInput.value = '';
                     
-                    // Força a repopulação e seleção imediata (listener já pegou o dado)
                     popularDeckSelector();
                     currentDeckSelect.value = nomeDeck;
                     onDeckChange(nomeDeck);
@@ -615,15 +635,12 @@
                     return;
                 }
                 
-                let dataToSave;
-                // Importação pressupõe a nova estrutura {Format: {decks: ...}}
-                dataToSave = importedDataRaw;
+                let dataToSave = importedDataRaw;
 
                 dbRef.set(dataToSave)
                     .then(() => {
                         statusElement.textContent = `Dados importados para ${currentUser} e sincronizados com o Firebase!`;
                         statusElement.className = 'success';
-                        // O listener do Firebase fará a atualização da UI
                     })
                     .catch(e => {
                         statusElement.textContent = `Erro ao importar para o Firebase: ${e.message}`;
@@ -650,7 +667,7 @@
             event.target.value = null;
         }
         
-        // NOVO: Função de cálculo de estatísticas aprimorada (inclui Play/Draw)
+        // Função de cálculo de estatísticas aprimorada (inclui Play/Draw)
         function calculateStats(filteredData) {
             const matchesArray = Object.values(filteredData || {});
             
@@ -666,7 +683,7 @@
                 const g1 = match.g1Result ? match.g1Result.toLowerCase() : '';
                 const g2 = match.g2Result ? match.g2Result.toLowerCase() : '';
                 const g3 = match.g3Result ? match.g3Result.toLowerCase() : 'not_played';
-                const playDraw = match.playDraw ? match.playDraw.toLowerCase() : null; // NOVO
+                const playDraw = match.playDraw ? match.playDraw.toLowerCase() : null; 
 
                 if (g1) { g1Total++; if (g1 === 'win') { g1Won++; gamesWon++; } }
                 if (g2) { g2Total++; if (g2 === 'win') { g2Won++; gamesWon++; } }
@@ -698,35 +715,33 @@
                 g1WinRate: formatWR(g1Won, g1Total),
                 g2WinRate: formatWR(g2Won, g2Total),
                 g3WinRate: formatWR(g3Won, g3Total),
-                // Retornos Play/Draw
                 playWinRate: formatWR(playWonMatches, playTotalMatches),
                 drawWinRate: formatWR(drawWonMatches, drawTotalMatches),
             };
         }
 
-        // NOVO: Função centralizada para atualizar a exibição de estatísticas
+        // Função centralizada para atualizar a exibição de estatísticas
         function updateStatsDisplay(matchupName = null) {
             const currentMatches = getCurrentMatches();
             let filteredMatches;
 
-            // NOVO: Elementos de contagem de jogos
+            // Elementos de contagem de jogos
             const countGeralElement = document.getElementById('match-count-geral');
             const countMatchupElement = document.getElementById('match-count-matchup');
-            const statsDisplayDiv = document.getElementById('stats-display'); // Para gerenciar o estilo de fundo
+            
+            // Para Matchup Stats
+            const displayDiv = document.getElementById('matchup-stats-display');
+            const statsDisplayDiv = document.getElementById('stats-display'); 
 
             if (matchupName) {
                 // Estatísticas por Matchup
                 filteredMatches = Object.values(currentMatches).filter(m => m.deckOponente === matchupName);
                 document.getElementById('matchup-name').textContent = matchupName;
                 displayDiv.style.display = 'block';
-                statsDisplayDiv.classList.remove('general-stats'); // Desliga o fundo do geral
-                statsDisplayDiv.style.backgroundImage = 'none';
             } else {
                 // Estatísticas Gerais
                 filteredMatches = currentMatches;
                 displayDiv.style.display = 'none';
-                // Adiciona a classe/estilo para o fundo (aplicado no CSS: #stats-display)
-                // Usando IDs pois a classe '.stats-section.general-stats' do seu CSS estava com erro de seletor
             }
 
             const stats = calculateStats(filteredMatches);
@@ -838,7 +853,7 @@
             if (selectedUser === NOVO_USUARIO_OPCAO) {
                 novoUsuarioContainer.style.display = 'block';
                 novoUsuarioInput.focus();
-                toggleControls(false); // Desativa todos os controles
+                toggleControls(false); 
             } else {
                 novoUsuarioContainer.style.display = 'none';
                 loadUserData(selectedUser);
