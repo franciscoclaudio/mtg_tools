@@ -62,9 +62,10 @@
                 <label for="play-draw-select">Você estava:</label>
                 <select id="play-draw-select" required disabled>
                     <option value="" disabled selected>Play ou Draw?</option>
-                    <option value="play">Play</option>
-                    <option value="draw">Draw</option>
+                    <option value="play">Jogando (Play)</option>
+                    <option value="draw">Sacando (Draw)</option>
                 </select>
+
                 <label for="g1-result">Resultado do Game 1:</label>
                 <select id="g1-result" required disabled>
                     <option value="" disabled selected>Selecione o Resultado</option>
@@ -128,7 +129,7 @@
                     <div class="stats-label">Win Rate no Draw</div>
                 </div>
             </div>
-            </div>
+        </div>
 
         <form id="matchup-stats-form">
             <label for="matchup-select">Ver Estatísticas de Matchup:</label>
@@ -175,7 +176,7 @@
                     <div class="stats-label">Win Rate no Draw</div>
                 </div>
             </div>
-            </div>
+        </div>
 
         <div id="status" class="loading">Inicie selecionando um usuário.</div>
 
@@ -213,6 +214,13 @@
         const db = firebase.database();
         const NOVA_MATCHUP_OPCAO = 'NOVA_MATCHUP';
         const NOVO_DECK_OPCAO = 'NOVO_DECK';
+
+        // NOVO: Lista completa de formatos para preencher o seletor.
+        const ALL_FORMATS = [
+            'Standard', 'Pioneer', 'Modern', 'Legacy', 'Vintage', 
+            'Commander', 'Pauper', 'Explorer', 'Alchemy', 'Brawl',
+            'Draft', 'Sealed', 'Outros'
+        ].sort(); 
 
         let currentUser = localStorage.getItem('currentUser') || null;
         let currentFormat = localStorage.getItem('currentFormat') || null;
@@ -321,7 +329,7 @@
 
         // 2. Seta o usuário, salva no localStorage e carrega os dados
         function onUserChange(user) {
-            if (!user) { // NOVO: Lógica de RESET
+            if (!user) { // Lógica de RESET
                 currentUser = null;
                 currentFormat = null;
                 currentDeck = null;
@@ -427,12 +435,21 @@
         // 4. Popula o seletor de formato e tenta selecionar o formato anterior
         function popularFormatSelector() {
             currentFormatSelect.innerHTML = '<option value="" disabled selected>Selecione o Formato</option>';
-            const formats = Object.keys(allData).filter(key => key !== 'matchups' && key !== 'decks'); // Lista de formatos
+            
+            // ALTERADO: Usar a lista estática de todos os formatos
+            const formats = ALL_FORMATS;
             
             formats.forEach(format => {
                 const option = document.createElement('option');
                 option.value = format;
-                option.textContent = format;
+                
+                // Adiciona (Jogado) se o usuário tiver decks nesse formato
+                let display_text = format;
+                if (allData[format] && allData[format].decks && Object.keys(allData[format].decks).length > 0) {
+                    display_text += ' (Jogado)';
+                }
+                option.textContent = display_text;
+                
                 currentFormatSelect.appendChild(option);
             });
             
@@ -444,7 +461,7 @@
                 currentDeck = null;
                 localStorage.removeItem('currentFormat');
                 localStorage.removeItem('currentDeck');
-                // ALTERADO: Chamado com value="" para a opção de reset
+                // Chamado com value="" para a opção de reset
                 currentDeckSelect.innerHTML = '<option value="">Selecione o Deck</option>';
                 currentDeckSelect.innerHTML += `<option value="${NOVO_DECK_OPCAO}">Criar Novo Deck...</option>`;
                 document.getElementById('current-deck-name').textContent = '';
@@ -471,9 +488,9 @@
 
         // 6. Popula o seletor de decks do formato atual
         function popularDeckSelector() {
-            // ALTERADO: A opção de reset agora é o placeholder (value="")
+            // A opção de reset agora é o placeholder (value="")
             currentDeckSelect.innerHTML = '<option value="">Selecione o Deck</option>';
-            // NOVO: "Criar Novo Deck" é sempre a segunda opção (como pedido)
+            // "Criar Novo Deck" é sempre a segunda opção
             currentDeckSelect.innerHTML += `<option value="${NOVO_DECK_OPCAO}">Criar Novo Deck...</option>`;
             
             const decks = getCurrentDecks(currentFormat);
@@ -498,7 +515,7 @@
 
         // 7. Chamado quando o deck muda
         function onDeckChange(deckName) {
-            if (!deckName) { // NOVO: Lógica de RESET (selecionou "Selecione o Deck")
+            if (!deckName) { // Lógica de RESET (selecionou "Selecione o Deck")
                 currentDeck = null;
                 localStorage.removeItem('currentDeck');
                 novoDeckContainer.style.display = 'none';
@@ -602,16 +619,28 @@
         
         // 9. Popula os seletores de matchup (oponente e estatísticas)
         function popularMatchupSelectors() {
-            const matchups = getCurrentMatchups(currentFormat);
-            const matchupNames = Object.keys(matchups);
+            const currentMatches = getCurrentMatches(); // Partidas para o deck atual
             
+            // 1. Tenta obter os nomes da lista dedicada /matchups (otimizado)
+            let matchups = getCurrentMatchups(currentFormat);
+            let matchupNames = Object.keys(matchups);
+            
+            // 2. CORREÇÃO DE ROBUSTEZ: Se a lista dedicada estiver vazia, reconstrói a lista a partir das partidas
+            if (matchupNames.length === 0 && Object.keys(currentMatches).length > 0) {
+                 const allOpponents = new Set();
+                 Object.values(currentMatches).forEach(match => {
+                     if (match.deckOponente) {
+                         allOpponents.add(match.deckOponente);
+                     }
+                 });
+                 matchupNames = Array.from(allOpponents).sort();
+            }
+
             // Seletor de Oponente (Formulário)
-            // ALTERADO: Placeholder é value="" e já está no HTML
             deckOponenteSelect.innerHTML = '<option value="">Selecione o Deck</option>';
             deckOponenteSelect.innerHTML += `<option value="${NOVA_MATCHUP_OPCAO}">Adicionar Nova Matchup...</option>`;
             
             // Seletor de Estatísticas
-            // ALTERADO: Placeholder é value="" e já está no HTML
             matchupSelect.innerHTML = '<option value="">Selecione uma Matchup</option>';
             matchupSelect.disabled = matchupNames.length === 0;
 
@@ -642,7 +671,6 @@
             // Rastreamento Play/Draw
             let playTotalMatches = 0, playWonMatches = 0;
             let drawTotalMatches = 0, drawWonMatches = 0;
-            // FIM NOVO
 
             for (const match of matchesArray) {
                 // Não há mais filtro de formato, pois getCurrentMatches() já filtra
@@ -669,7 +697,6 @@
                     drawTotalMatches++;
                     if (matchWon) drawWonMatches++;
                 }
-                // FIM NOVO
             }
 
             totalGames = g1Total + g2Total + g3Total;
@@ -686,7 +713,6 @@
                 // Retornos Play/Draw
                 playWinRate: formatWR(playWonMatches, playTotalMatches),
                 drawWinRate: formatWR(drawWonMatches, drawTotalMatches),
-                // FIM NOVO
             };
         }
 
