@@ -158,42 +158,64 @@ button:disabled {
     text-align: center;
 }
 
-.stats-section.general-stats {
-    background-image: url('../img/laboratory_manic.jpg'); 
+/* ============================================ */
+/* NOVO ESTILO: Container Principal de Estatísticas Gerais (ID #stats-display) */
+/* Aplica o fundo de tela laboratory_maniac.jpg */
+/* ============================================ */
+#stats-display {
+    /* CORREÇÃO DO CAMINHO DA IMAGEM */
+    background-image: url('../img/laboratory_maniac.jpg'); 
     background-size: cover; 
     background-position: center; 
     background-color: #3a2e22;
     position: relative;
     overflow: hidden;
     color: #fff;
-    display: block;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #737373;
 }
 
-.stats-section.general-stats::before {
+/* Camada escura sobre a imagem de fundo para legibilidade (Overlay) */
+#stats-display::before {
     content: "";
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.6); 
     z-index: 1;
+    border-radius: 8px;
 }
 
-.stats-section.general-stats h2,
-.stats-section.general-stats h4,
-.stats-section.general-stats .stats-item {
+/* Garante que o conteúdo fique visível acima do fundo e com cor apropriada */
+#stats-display h3, #stats-display h4, #stats-display .stats-section, #stats-display * {
     position: relative;
     z-index: 2; 
 }
 
-.stats-section.general-stats .stats-section {
-    display: flex;
-    background: none;
-    padding: 0;
-    margin-bottom: 0;
-    border: none;
+#stats-display h3, #stats-display h4 {
+    color: #ffd700; /* Destaque em dourado */
 }
+
+/* Estilo para as barras de estatísticas internas no fundo de tela */
+#stats-display .stats-section {
+    display: flex;
+    background: rgba(0, 0, 0, 0.4); /* Fundo semi-transparente */
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid #a87e50;
+    border-radius: 6px;
+}
+
+#stats-display .stats-item {
+    background-color: #4a3a2a; /* Fundo mais escuro para os itens de stats */
+    border-color: #a87e50;
+}
+/* FIM DO BLOCO DE ESTATÍSTICAS GERAIS */
+
 
 .stats-item {
     flex-grow: 1;
@@ -253,7 +275,6 @@ button:disabled {
 }
 
 #matchup-stats-display {
-    display: none;
     margin-top: 15px;
     border-top: 1px dashed #a87e50;
     padding-top: 15px;
