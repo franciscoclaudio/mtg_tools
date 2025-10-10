@@ -19,7 +19,7 @@
         <div class="user-selector">
             <label for="user-select">Selecione o Usuário:</label>
             <select id="user-select" required>
-                <option value="" disabled selected>Selecione seu Nome</option>
+                <option value="">Selecione seu Nome</option>
             </select>
             <div id="novo-usuario-container">
                 <label for="novo-usuario-input">Nome do Novo Usuário:</label>
@@ -36,8 +36,7 @@
         <div class="deck-selector">
             <label for="current-deck-select">Selecione seu Deck:</label>
             <select id="current-deck-select" required disabled>
-                <option value="" disabled selected>Selecione o Deck</option>
-                <option value="NOVO_DECK">Criar Novo Deck...</option>
+                <option value="">Selecione o Deck</option>
             </select>
             <div id="novo-deck-container">
                 <label for="novo-deck-input">Nome do Novo Deck:</label>
@@ -52,8 +51,7 @@
 
                 <label for="deck-oponente-select">Deck Oponente:</label>
                 <select id="deck-oponente-select" required disabled>
-                    <option value="" disabled selected>Selecione o Deck</option>
-                    <option value="NOVA_MATCHUP">Adicionar Nova Matchup...</option>
+                    <option value="">Selecione o Deck</option>
                 </select>
 
                 <div id="nova-matchup-container">
@@ -64,8 +62,8 @@
                 <label for="play-draw-select">Você estava:</label>
                 <select id="play-draw-select" required disabled>
                     <option value="" disabled selected>Play ou Draw?</option>
-                    <option value="play">Jogando (Play)</option>
-                    <option value="draw">Sacando (Draw)</option>
+                    <option value="play">Play</option>
+                    <option value="draw">Draw</option>
                 </select>
                 <label for="g1-result">Resultado do Game 1:</label>
                 <select id="g1-result" required disabled>
@@ -135,7 +133,7 @@
         <form id="matchup-stats-form">
             <label for="matchup-select">Ver Estatísticas de Matchup:</label>
             <select id="matchup-select" disabled>
-                <option value="" disabled selected>Selecione uma Matchup</option>
+                <option value="">Selecione uma Matchup</option>
             </select>
         </form>
 
@@ -247,7 +245,7 @@
             // Elementos a serem desativados/ativados
             const controlsToToggle = [
                 currentFormatSelect, currentDeckSelect, deckOponenteSelect, matchupSelect,
-                document.getElementById('play-draw-select'), // NOVO: SELETOR PLAY/DRAW
+                document.getElementById('play-draw-select'),
                 document.getElementById('g1-result'), document.getElementById('g2-result'),
                 document.getElementById('g3-result'), document.getElementById('submit-match'),
                 document.getElementById('export-btn'), document.getElementById('import-btn')
@@ -290,7 +288,8 @@
         function popularUserSelector() {
             db.ref('users').once('value')
                 .then(snapshot => {
-                    userSelect.innerHTML = '<option value="" disabled selected>Selecione seu Nome</option>';
+                    // ALTERADO: A opção de reset já está no HTML com value=""
+                    userSelect.innerHTML = '<option value="">Selecione seu Nome</option>';
                     if (snapshot.exists()) {
                         const users = snapshot.val();
                         Object.keys(users).forEach(user => {
@@ -305,6 +304,8 @@
                         userSelect.value = currentUser;
                         loadUserData(currentUser);
                     } else {
+                        // Se o usuário não existe ou foi resetado
+                        currentUser = null;
                         statusElement.textContent = 'Selecione ou crie um usuário.';
                         statusElement.className = 'info';
                         novoUsuarioContainer.style.display = 'block';
@@ -320,6 +321,33 @@
 
         // 2. Seta o usuário, salva no localStorage e carrega os dados
         function onUserChange(user) {
+            if (!user) { // NOVO: Lógica de RESET
+                currentUser = null;
+                currentFormat = null;
+                currentDeck = null;
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('currentFormat');
+                localStorage.removeItem('currentDeck');
+                
+                // Limpa a referência do DB e dados locais
+                if (dbRef) dbRef.off();
+                dbRef = null;
+                allData = {};
+                
+                // Reinicia a UI para o estado inicial
+                currentFormatSelect.innerHTML = '<option value="" disabled selected>Selecione o Formato</option>';
+                currentDeckSelect.innerHTML = '<option value="">Selecione o Deck</option>'; // Placeholder resetado
+                currentDeckSelect.innerHTML += `<option value="${NOVO_DECK_OPCAO}">Criar Novo Deck...</option>`; // Opção de criação
+                document.getElementById('current-deck-name').textContent = '';
+                novoUsuarioContainer.style.display = 'block';
+                
+                statusElement.textContent = 'Selecione ou crie um usuário.';
+                statusElement.className = 'info';
+                toggleControls(false);
+                return;
+            }
+            
+            // Lógica original para usuário válido
             currentUser = user;
             localStorage.setItem('currentUser', user);
             currentFormat = null;
@@ -416,7 +444,9 @@
                 currentDeck = null;
                 localStorage.removeItem('currentFormat');
                 localStorage.removeItem('currentDeck');
-                currentDeckSelect.innerHTML = '<option value="" disabled selected>Selecione o Deck</option><option value="NOVO_DECK">Criar Novo Deck...</option>';
+                // ALTERADO: Chamado com value="" para a opção de reset
+                currentDeckSelect.innerHTML = '<option value="">Selecione o Deck</option>';
+                currentDeckSelect.innerHTML += `<option value="${NOVO_DECK_OPCAO}">Criar Novo Deck...</option>`;
                 document.getElementById('current-deck-name').textContent = '';
                 toggleControls(false); // Desativa tudo, exceto o seletor de formato
                 currentFormatSelect.disabled = false;
@@ -441,7 +471,9 @@
 
         // 6. Popula o seletor de decks do formato atual
         function popularDeckSelector() {
-            currentDeckSelect.innerHTML = '<option value="" disabled selected>Selecione o Deck</option>';
+            // ALTERADO: A opção de reset agora é o placeholder (value="")
+            currentDeckSelect.innerHTML = '<option value="">Selecione o Deck</option>';
+            // NOVO: "Criar Novo Deck" é sempre a segunda opção (como pedido)
             currentDeckSelect.innerHTML += `<option value="${NOVO_DECK_OPCAO}">Criar Novo Deck...</option>`;
             
             const decks = getCurrentDecks(currentFormat);
@@ -458,12 +490,38 @@
             } else {
                 currentDeck = null;
                 localStorage.removeItem('currentDeck');
-                onDeckChange(null);
+                // Força o valor para a opção de reset se não houver deck selecionado
+                currentDeckSelect.value = ""; 
+                onDeckChange("");
             }
         }
 
         // 7. Chamado quando o deck muda
         function onDeckChange(deckName) {
+            if (!deckName) { // NOVO: Lógica de RESET (selecionou "Selecione o Deck")
+                currentDeck = null;
+                localStorage.removeItem('currentDeck');
+                novoDeckContainer.style.display = 'none';
+                novoDeckInput.removeAttribute('required');
+                novoDeckInput.value = '';
+                
+                document.getElementById('current-deck-name').textContent = '';
+                displayDiv.style.display = 'none';
+
+                // Desativa a interface de registro de partida e matchups
+                deckOponenteSelect.disabled = true;
+                document.getElementById('play-draw-select').disabled = true; 
+                document.getElementById('g1-result').disabled = true;
+                document.getElementById('g2-result').disabled = true;
+                document.getElementById('g3-result').disabled = true;
+                document.getElementById('submit-match').disabled = true;
+                matchupSelect.disabled = true;
+                novaMatchupContainer.style.display = 'none';
+                
+                updateStatsDisplay(null);
+                return;
+            }
+            
             if (deckName === NOVO_DECK_OPCAO) {
                 currentDeck = null;
                 novoDeckContainer.style.display = 'block';
@@ -472,7 +530,7 @@
                 
                 // Desativa a interface de registro de partida
                 deckOponenteSelect.disabled = true;
-                document.getElementById('play-draw-select').disabled = true; // NOVO: Desativa Play/Draw
+                document.getElementById('play-draw-select').disabled = true;
                 document.getElementById('g1-result').disabled = true;
                 document.getElementById('g2-result').disabled = true;
                 document.getElementById('g3-result').disabled = true;
@@ -490,7 +548,7 @@
                 
                 // Reativa a interface de registro de partida
                 deckOponenteSelect.disabled = false;
-                document.getElementById('play-draw-select').disabled = false; // NOVO: Ativa Play/Draw
+                document.getElementById('play-draw-select').disabled = false; 
                 document.getElementById('g1-result').disabled = false;
                 document.getElementById('g2-result').disabled = false;
                 document.getElementById('g3-result').disabled = false;
@@ -501,10 +559,6 @@
                 
                 // Atualiza as estatísticas gerais
                 updateStatsDisplay(null);
-            } else {
-                currentDeck = null;
-                document.getElementById('current-deck-name').textContent = '';
-                // Garante que o estado seja limpo se a seleção for null
             }
         }
 
@@ -552,11 +606,13 @@
             const matchupNames = Object.keys(matchups);
             
             // Seletor de Oponente (Formulário)
-            deckOponenteSelect.innerHTML = '<option value="" disabled selected>Selecione o Deck</option>';
+            // ALTERADO: Placeholder é value="" e já está no HTML
+            deckOponenteSelect.innerHTML = '<option value="">Selecione o Deck</option>';
             deckOponenteSelect.innerHTML += `<option value="${NOVA_MATCHUP_OPCAO}">Adicionar Nova Matchup...</option>`;
             
             // Seletor de Estatísticas
-            matchupSelect.innerHTML = '<option value="" disabled selected>Selecione uma Matchup</option>';
+            // ALTERADO: Placeholder é value="" e já está no HTML
+            matchupSelect.innerHTML = '<option value="">Selecione uma Matchup</option>';
             matchupSelect.disabled = matchupNames.length === 0;
 
             matchupNames.forEach(name => {
@@ -583,7 +639,7 @@
             let totalMatches = 0, matchesWon = 0, totalGames = 0, gamesWon = 0;
             let g1Total = 0, g1Won = 0, g2Total = 0, g2Won = 0, g3Total = 0, g3Won = 0;
             
-            // NOVO: Rastreamento Play/Draw
+            // Rastreamento Play/Draw
             let playTotalMatches = 0, playWonMatches = 0;
             let drawTotalMatches = 0, drawWonMatches = 0;
             // FIM NOVO
@@ -604,7 +660,7 @@
                 let matchWon = wins >= 2;
                 if (matchWon) matchesWon++;
                 
-                // NOVO: Rastreamento Play/Draw
+                // Rastreamento Play/Draw
                 const playDraw = match.playDraw ? match.playDraw.toLowerCase() : null;
                 if (playDraw === 'play') {
                     playTotalMatches++;
@@ -627,7 +683,7 @@
                 g1WinRate: formatWR(g1Won, g1Total),
                 g2WinRate: formatWR(g2Won, g2Total),
                 g3WinRate: formatWR(g3Won, g3Total),
-                // NOVO: Retornos Play/Draw
+                // Retornos Play/Draw
                 playWinRate: formatWR(playWonMatches, playTotalMatches),
                 drawWinRate: formatWR(drawWonMatches, drawTotalMatches),
                 // FIM NOVO
@@ -659,7 +715,7 @@
                 document.getElementById('matchup-wr-g1').textContent = stats.g1WinRate;
                 document.getElementById('matchup-wr-g2').textContent = stats.g2WinRate;
                 document.getElementById('matchup-wr-g3').textContent = stats.g3WinRate;
-                // NOVO: Atualiza Play/Draw Matchup
+                // Atualiza Play/Draw Matchup
                 document.getElementById('matchup-wr-play').textContent = stats.playWinRate;
                 document.getElementById('matchup-wr-draw').textContent = stats.drawWinRate;
             } else {
@@ -669,7 +725,7 @@
                 document.getElementById('wr-g1-geral').textContent = stats.g1WinRate;
                 document.getElementById('wr-g2-geral').textContent = stats.g2WinRate;
                 document.getElementById('wr-g3-geral').textContent = stats.g3WinRate;
-                // NOVO: Atualiza Play/Draw Geral
+                // Atualiza Play/Draw Geral
                 document.getElementById('wr-play-geral').textContent = stats.playWinRate;
                 document.getElementById('wr-draw-geral').textContent = stats.drawWinRate;
 
@@ -723,7 +779,6 @@
         }
         
         // 12. Funções de Exportação e Importação (JSON)
-        // ... (Funções de export/import JSON - não alteradas, mas necessárias para o código)
         
         document.getElementById('export-btn').addEventListener('click', () => {
             if (!currentUser) return;
@@ -807,9 +862,10 @@
             const g1Result = document.getElementById('g1-result').value;
             const g2Result = document.getElementById('g2-result').value;
             const g3Result = document.getElementById('g3-result').value;
-            const playDraw = document.getElementById('play-draw-select').value; // NOVO: Coleta Play/Draw
+            const playDraw = document.getElementById('play-draw-select').value; 
 
-            if (!deckOponente || !g1Result || !g2Result || !playDraw) { // NOVO: Validação Play/Draw
+            // A validação agora trata value="" como campo obrigatório não preenchido
+            if (!deckOponente || !g1Result || !g2Result || !playDraw) { 
                 statusElement.textContent = 'Preencha todos os campos obrigatórios!';
                 statusElement.className = 'error';
                 return;
@@ -819,7 +875,7 @@
                 timestamp: new Date().toISOString(),
                 deckProprio: currentDeck,
                 deckOponente: deckOponente,
-                playDraw: playDraw, // NOVO: Adiciona ao objeto
+                playDraw: playDraw,
                 g1Result: g1Result,
                 g2Result: g2Result,
                 g3Result: g3Result
@@ -827,10 +883,11 @@
                         
             addMatch(newMatch);
             
-            // Limpa o formulário e reseta o valor 'not_played'
+            // Limpa o formulário e reseta para a opção de reset
             matchForm.reset();
             document.getElementById('g3-result').value = 'not_played';
-            document.getElementById('play-draw-select').value = ''; // Limpa o Play/Draw
+            document.getElementById('play-draw-select').value = ''; 
+            deckOponenteSelect.value = ''; // Reset do oponente para a opção Selecione o Deck
             novaMatchupContainer.style.display = 'none';
         });
 
@@ -839,6 +896,7 @@
             if (selectedMatchup) {
                 updateStatsDisplay(selectedMatchup);
             } else {
+                // Se selecionar a opção de reset (value=""), reseta o display
                 displayDiv.style.display = 'none';
                 updateStatsDisplay(null);
             }
