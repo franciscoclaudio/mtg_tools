@@ -275,6 +275,7 @@ button:disabled {
 }
 
 #matchup-stats-display {
+    background-image: url('../img/Ib_Halfheat.jpg'); 
     margin-top: 15px;
     border-top: 1px dashed #a87e50;
     padding-top: 15px;
