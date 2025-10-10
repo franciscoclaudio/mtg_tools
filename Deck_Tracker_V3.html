@@ -494,7 +494,7 @@
                 onDeckChange(null);
             }
         }
-
+        
         function criarNovoDeck() {
             const nomeDeck = novoDeckInput.value.trim();
             if (!nomeDeck || !dbRef || !currentFormat) {
@@ -508,20 +508,24 @@
                 return;
             }
             
-            currentDeck = nomeDeck; 
-            novoDeckContainer.style.display = 'none';
-            novoDeckInput.value = '';
-            
-            // O Firebase será atualizado quando a primeira partida for adicionada.
-            // Apenas atualiza o seletor localmente.
-            popularDeckSelector(); 
-            currentDeckSelect.value = nomeDeck; 
-            onDeckChange(nomeDeck);
-            
-            statusElement.textContent = `Deck "${nomeDeck}" pronto para registro no formato ${currentFormat}!`;
-            statusElement.className = 'success';
+            // Cria o deck no Firebase imediatamente (vazio)
+            const deckRef = dbRef.child(currentFormat).child('decks').child(nomeDeck);
+            deckRef.set({})
+                .then(() => {
+                    currentDeck = nomeDeck;
+                    novoDeckContainer.style.display = 'none';
+                    novoDeckInput.value = '';
+                    
+                    // Após criar no Firebase, atualiza o seletor
+                    // O listener do Firebase irá atualizar allData automaticamente
+                    statusElement.textContent = `Deck "${nomeDeck}" criado com sucesso no formato ${currentFormat}!`;
+                    statusElement.className = 'success';
+                })
+                .catch(error => {
+                    statusElement.textContent = `Erro ao criar deck: ${error.message}`;
+                    statusElement.className = 'error';
+                });
         }
-
         function addMatch(newMatch) {
             if (!currentDeck || !currentFormat || !dbRef) {
                 statusElement.textContent = 'Erro: Selecione um formato e um deck.';
