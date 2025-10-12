@@ -173,14 +173,15 @@ button:disabled {
 }
 
 /* ============================================ */
-/* ESTATÍSTICAS GERAIS - FUNDO GRADIENTE */
-/* Como a imagem laboratory_maniac.jpg não está carregando, */
-/* usando um gradiente atraente */
+/* ESTATÍSTICAS GERAIS - FUNDO COM IMAGEM */
 /* ============================================ */
 #stats-display {
     text-align: center;
-    /* Gradiente vibrante como fallback */
-    background: linear-gradient(135deg, #1a5c29 0%, #27883d 50%, #1a5c29 100%);
+    /* Imagem do Laboratory Maniac */
+    background-image: url('../img/laboratory_maniac.jpg');
+    background-size: cover;
+    background-position: center;
+    background-color: #1a5c29; /* Fallback */
     position: relative;
     overflow: hidden;
     color: #fff;
@@ -191,7 +192,7 @@ button:disabled {
     box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
 }
 
-/* Overlay leve para profundidade */
+/* Overlay para legibilidade - ajuste a opacidade conforme necessário */
 #stats-display::before {
     content: "";
     position: absolute;
@@ -199,7 +200,7 @@ button:disabled {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.2); /* Muito leve */
+    background: rgba(0, 0, 0, 0.4); /* Ajuste entre 0.3 e 0.6 para mais/menos escuro */
     z-index: 1;
     border-radius: 8px;
 }
