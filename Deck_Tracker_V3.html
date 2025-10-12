@@ -507,26 +507,41 @@
             }
         }
 
-
         function popularDeckSelector() {
-            if (!currentFormat) return; 
+            console.log('popularDeckSelector called, currentFormat:', currentFormat);
+            
+            if (!currentFormat) {
+                currentDeckSelect.innerHTML = '<option value="" disabled selected>Selecione um Formato Primeiro</option>';
+                currentDeckSelect.disabled = true;
+                return; 
+            }
 
             currentDeckSelect.innerHTML = '';
-            currentDeckSelect.appendChild(new Option('Selecione seu Deck Atual', '', true, true));
+            currentDeckSelect.appendChild(new Option('Selecione seu Deck Atual', '', false, false));
             
             const metagameDecks = METAGAME_DECKS_BY_FORMAT[currentFormat] || [];
-            const uniqueDeckOptions = new Set(metagameDecks);
+            console.log('Metagame decks for', currentFormat, ':', metagameDecks);
             
+            const uniqueDeckOptions = new Set();
+            
+            // Adiciona todos os decks do metagame
+            metagameDecks.forEach(deck => {
+                if (deck !== 'Outro') {
+                    uniqueDeckOptions.add(deck);
+                }
+            });
+            
+            // Adiciona decks já criados pelo usuário
             const existingUserDecks = getCurrentDecks(currentFormat);
-            const existingUserDeckNames = Object.keys(existingUserDecks).sort();
+            const existingUserDeckNames = Object.keys(existingUserDecks);
+            console.log('Existing user decks:', existingUserDeckNames);
             
             existingUserDeckNames.forEach(name => {
                 uniqueDeckOptions.add(name);
             });
             
-            uniqueDeckOptions.delete('Outro');
-            
             const finalDeckList = Array.from(uniqueDeckOptions).sort();
+            console.log('Final deck list:', finalDeckList);
 
             finalDeckList.forEach(name => {
                 currentDeckSelect.appendChild(new Option(name, name));
@@ -534,11 +549,15 @@
             
             currentDeckSelect.appendChild(new Option('--- Criar Novo Deck ---', NOVO_DECK_OPCAO));
             
-            // Tenta selecionar o deck atual
+            // CRITICAL: Habilita o seletor de deck
+            currentDeckSelect.disabled = false;
+            
+            // Tenta selecionar o deck atual se ainda existir
             if (currentDeck && (finalDeckList.includes(currentDeck) || currentDeck === NOVO_DECK_OPCAO)) {
                 currentDeckSelect.value = currentDeck;
             } else {
                 currentDeck = null;
+                currentDeckSelect.value = '';
                 onDeckChange(null, false);
             }
         }
