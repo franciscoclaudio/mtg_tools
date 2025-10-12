@@ -81,12 +81,14 @@ h4 {
     text-shadow: 1px 1px 2px #000;
 }
 
+/* MODIFICAÇÃO: Adicionar text-align: center para centralizar os elementos internos */
 form, .stats-section, .deck-selector, .user-selector, .format-selector { 
     background-color: #3a3a3a;
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 20px;
     border: 2px solid #4a4a4a;
+    text-align: center; /* Adicionado para centralizar selects e buttons */
 }
 
 .user-selector { 
@@ -114,8 +116,14 @@ label {
     margin-bottom: 8px;
     font-weight: bold;
     color: #b8b8b8;
+    /* Manter alinhamento à esquerda das labels para melhor leitura */
+    text-align: left; 
+    max-width: 400px; /* Alinhar com a largura dos inputs/selects */
+    margin-left: auto;
+    margin-right: auto;
 }
 
+/* MODIFICAÇÃO: Adicionar max-width e margin: auto para centralizar o bloco */
 input[type="number"], input[type="text"], select, button {
     width: 100%;
     padding: 12px;
@@ -127,6 +135,13 @@ input[type="number"], input[type="text"], select, button {
     color: #1a1a1a;
     transition: all 0.3s ease;
     text-align: left; 
+    
+    /* CENTRALIZAÇÃO - NOVAS PROPRIEDADES */
+    max-width: 400px; /* Limita a largura do campo */
+    display: block; /* Garante que 'margin: auto' funcione */
+    margin-left: auto; /* Centraliza o bloco */
+    margin-right: auto; /* Centraliza o bloco */
+    margin-bottom: 15px; /* Mantém o espaçamento inferior original */
 }
 
 input[type="number"]:focus,
@@ -381,12 +396,21 @@ button:disabled {
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
+    
+    /* MODIFICAÇÃO: Centralizar o bloco de botões */
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 20px; 
 }
 
 .control-buttons button {
     flex: 1;
     margin-bottom: 0;
     padding: 10px;
+    /* ANULAR A REGRA GERAL PARA MANTER FLEXBOX */
+    max-width: none; 
+    margin: 0; 
 }
 
 /* Estilo para o container de utilitários */
@@ -468,6 +492,7 @@ button:disabled {
 /* BOTÕES ESPECIAIS */
 /* ============================================ */
 
+/* Os estilos btn-create-deck e btn-create-user herdam a centralização da regra geral de 'button' */
 .btn-create-deck {
     background: linear-gradient(135deg, #1a4d2e 0%, #25633d 100%) !important;
     color: #e8e8e8 !important;
@@ -540,6 +565,11 @@ button:disabled {
     
     .control-buttons {
         flex-direction: column;
+        max-width: 100%; /* Permite 100% de largura em mobile */
+    }
+    
+    .control-buttons button {
+        max-width: none;
     }
     
     h1 {
@@ -557,5 +587,10 @@ button:disabled {
     
     .stats-value {
         font-size: 1.5em;
+    }
+    
+    /* ANULA max-width para inputs/selects em mobile */
+    input[type="number"], input[type="text"], select, button {
+        max-width: 100%;
     }
 }
