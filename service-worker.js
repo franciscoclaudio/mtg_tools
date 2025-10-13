@@ -1,10 +1,8 @@
 const CACHE_NAME = 'frequencia-alunos-v1';
 const urlsToCache = [
-  '/Frequencia-Alunos/App_Firebase/frequencia_app_fb.html',
-  '/Frequencia-Alunos/App_Firebase/frequencia_app_fb_script.js',
-  '/Frequencia-Alunos/styles/main_styles.css',
-  '/Frequencia-Alunos/styles/secondary_styles.css',
-  '/Frequencia-Alunos/img/icon.png',
+  '/mtg_tools/Deck_Tracker_V3.html',
+  '/mtg_tools/styles/Deck_Tracker_styles_dark.css',
+  '/mtg_tools/img/icon.png',
   'https://cdn.tailwindcss.com'
 ];
 
@@ -58,7 +56,7 @@ self.addEventListener('fetch', (event) => {
           // Se a requisição for uma navegação (carregamento de página)
           if (event.request.mode === 'navigate') {
             // Tenta servir a página HTML principal cacheada
-            return caches.match('/Frequencia-Alunos/App_Firebase/frequencia_app_fb.html');
+            return caches.match('/mtg_tools/Deck_Tracker_V3.html');
           }
         });
       })
