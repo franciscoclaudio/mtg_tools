@@ -38,7 +38,7 @@ body {
 header {
     text-align: center;
     margin-bottom: 30px;
-    background-image: url('../img/solve_equation.jpg');
+    background-image: url('/mtg_tools/img/solve_equation.jpg');
     background-size: cover;
     background-position: center 30%; 
     background-color: #27883d;
@@ -141,7 +141,7 @@ button:hover {
     font-size: 1.2em;
     display: none;
     font-weight: 500;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('../img/eureka.jpg');
+    background-image: linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('/mtg_tools/img/eureka.jpg');
     background-size: cover; 
     background-position: center 50%;
     background-color: #3a2e22;
