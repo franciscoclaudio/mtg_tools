@@ -41,7 +41,7 @@ header {
     text-align: center;
     margin-bottom: 30px;
     /* Usando a imagem que está funcionando */
-    background-image: url('../img/tireless_tracker.jpg'); 
+    background-image: url('/mtg_tools/img/tireless_tracker.jpg'); 
     background-size: cover; 
     background-position: center 20%; 
     background-color: #27883d; 
@@ -178,7 +178,7 @@ button:disabled {
 #stats-display {
     text-align: center;
     /* Imagem do Laboratory Maniac */
-    background-image: url('../img/laboratory_maniac.jpg');
+    background-image: url('/mtg_tools/img/laboratory_maniac.jpg');
     background-size: cover;
     background-position: center;
     background-color: #1a5c29; /* Fallback */
