@@ -86,23 +86,8 @@
 
         // Função para verificar se o prompt deve ser mostrado
         function shouldShowInstallPrompt() {
-            const dismissed = localStorage.getItem('installPromptDismissed');
-            const dismissedTime = localStorage.getItem('installPromptDismissedTime');
-            
-            // Se nunca foi dispensado, mostrar
-            if (!dismissed) return true;
-            
-            // Se foi dispensado há mais de 7 dias, mostrar novamente
-            if (dismissedTime) {
-                const daysSinceDismissed = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60 * 24);
-                if (daysSinceDismissed > 7) {
-                    localStorage.removeItem('installPromptDismissed');
-                    localStorage.removeItem('installPromptDismissedTime');
-                    return true;
-                }
-            }
-            
-            return false;
+            // SEMPRE MOSTRAR O PROMPT
+            return true;
         }
 
         // Capturar evento de instalação (Chrome/Edge Android/Desktop)
@@ -110,30 +95,25 @@
             e.preventDefault();
             deferredPrompt = e;
             
-            // Mostra o prompt apenas se não foi dispensado recentemente
-            if (shouldShowInstallPrompt()) {
-                installPrompt.classList.remove('hidden');
-            }
+            // Sempre mostra o prompt
+            installPrompt.classList.remove('hidden');
         });
 
         // Para iOS: Mostrar instruções se não estiver instalado
         window.addEventListener('load', () => {
             if (isIOS() && !isInStandaloneMode()) {
-                // Mostra o prompt apenas se não foi dispensado recentemente
-                if (shouldShowInstallPrompt()) {
-                    // Modifica o conteúdo para iOS
-                    const installContent = installPrompt.querySelector('.install-content');
-                    installContent.innerHTML = `
-                        <p class="install-title">Instalar como App</p>
-                        <p class="install-subtitle">Toque em <span style="font-size: 1.2em;">⎙</span> e depois "Adicionar à Tela Inicial"</p>
-                    `;
-                    
-                    // Remove o botão "Instalar" no iOS (não funciona)
-                    installBtn.style.display = 'none';
-                    
-                    // Mostra o prompt
-                    installPrompt.classList.remove('hidden');
-                }
+                // Sempre mostra o prompt no iOS
+                const installContent = installPrompt.querySelector('.install-content');
+                installContent.innerHTML = `
+                    <p class="install-title">Instalar como App</p>
+                    <p class="install-subtitle">Toque em <span style="font-size: 1.2em;">⎙</span> e depois "Adicionar à Tela Inicial"</p>
+                `;
+                
+                // Remove o botão "Instalar" no iOS (não funciona)
+                installBtn.style.display = 'none';
+                
+                // Mostra o prompt
+                installPrompt.classList.remove('hidden');
             }
         });
 
@@ -147,26 +127,16 @@
             
             deferredPrompt = null;
             installPrompt.classList.add('hidden');
-            
-            // Se recusou, salva que foi dispensado
-            if (outcome === 'dismissed') {
-                localStorage.setItem('installPromptDismissed', 'true');
-                localStorage.setItem('installPromptDismissedTime', Date.now().toString());
-            }
         });
 
-        // Botão de dispensar
+        // Botão de dispensar (apenas esconde temporariamente)
         dismissBtn.addEventListener('click', () => {
             installPrompt.classList.add('hidden');
-            localStorage.setItem('installPromptDismissed', 'true');
-            localStorage.setItem('installPromptDismissedTime', Date.now().toString());
         });
 
         // Esconder banner quando o app já está instalado
         window.addEventListener('appinstalled', () => {
             installPrompt.classList.add('hidden');
-            localStorage.removeItem('installPromptDismissed');
-            localStorage.removeItem('installPromptDismissedTime');
             console.log('PWA instalado com sucesso!');
         });
     </script>
