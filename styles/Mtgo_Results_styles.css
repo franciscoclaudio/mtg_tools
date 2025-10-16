@@ -1,6 +1,6 @@
 /* ============================================ */
 /* MTGO_RESULTS_STYLES.CSS - PALETA SÓBRIA ADAPTADA DO DECK TRACKER */
-/* Cores base: Verde Escuro (#1a4d2e), Cinza Escuro (#2b2b2b), Branco Suave (#e8e8e8) */
+/* Cores base do Deck Tracker: Verde Escuro (#1a4d2e), Cinza Escuro (#2b2b2b), Branco Suave (#e8e8e8) */
 /* ============================================ */
 
 /* --- RESET E LAYOUT GERAL --- */
@@ -35,7 +35,7 @@ body {
     }
 }
 
-/* --- HEADER (Com o gradiente do Ferramentas MTG) --- */
+/* --- HEADER --- */
 header {
     text-align: center;
     margin-bottom: 30px;
@@ -59,7 +59,6 @@ h2 {
     font-weight: normal;
 }
 
-/* Títulos de Seção */
 h2, h3 {
     color: #e8e8e8;
     margin-top: 25px;
@@ -102,7 +101,7 @@ nav li a.active {
     border-radius: 8px;
 }
 
-/* --- SEÇÃO DE BUSCA (Estilo do Deck Tracker para inputs e botões) --- */
+/* --- SEÇÃO DE BUSCA --- */
 
 .search-section {
     background-color: #3a3a3a;
@@ -162,7 +161,7 @@ nav li a.active {
     box-shadow: 0 4px 12px rgba(26, 77, 46, 0.4);
 }
 
-/* --- ESTATÍSTICAS GERAIS (STAT CARDS - Visibilidade Aprimorada) --- */
+/* --- ESTATÍSTICAS GERAIS (STAT CARDS) --- */
 
 #stats-overview h2 {
     margin-top: 0;
@@ -193,7 +192,7 @@ nav li a.active {
 .stat-value {
     font-size: 2.5em;
     font-weight: bold;
-    color: #4CAF50; /* Destaque em Verde de alta visibilidade */
+    color: #4CAF50; /* Destaque em Verde */
     margin-bottom: 10px;
     text-shadow: 1px 1px 2px #000;
 }
@@ -205,6 +204,10 @@ nav li a.active {
 }
 
 /* --- TABELA DE RESULTADOS --- */
+
+#recent-results h2 {
+    margin-top: 0;
+}
 
 #results-table {
     width: 100%;
@@ -239,7 +242,7 @@ nav li a.active {
     background-color: #2b2b2b;
 }
 
-/* --- DECK STATS / FORMAT STATS (Consistente com o Deck Tracker) --- */
+/* --- DECK STATS / FORMAT STATS --- */
 
 .deck-stat-item {
     display: flex;
@@ -267,14 +270,14 @@ nav li a.active {
     font-weight: bold;
 }
 
-/* --- MENSAGENS DE STATUS (Consistente com o Deck Tracker) --- */
+/* --- MENSAGENS DE STATUS --- */
 #status {
     text-align: center;
     padding: 15px;
     border-radius: 6px;
     margin: 20px 0;
     font-weight: bold;
-    display: none; 
+    display: none; /* Mantém oculto por padrão no CSS */
 }
 
 #status.loading {
