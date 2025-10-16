@@ -42,6 +42,10 @@
                     <div class="stat-label">Total de Eventos</div>
                 </div>
                 <div class="stat-card">
+                    <div class="stat-value" id="total-top1">0</div>
+                    <div class="stat-label">🥇 1º Lugar</div>
+                </div>
+                <div class="stat-card">
                     <div class="stat-value" id="total-top8">0</div>
                     <div class="stat-label">Top 8</div>
                 </div>
@@ -96,6 +100,7 @@
         playerData = {
             username: username,
             totalEvents: 0,
+            top1: 0,
             top8: 0,
             top16: 0,
             top32: 0,
@@ -205,34 +210,25 @@
                 playerData.totalEvents++;
 
                 const finishLower = finish.toLowerCase();
-                const placementNum = parseInt(finish);
                 
+                // Extrai o número completo (ex: "12th" -> 12, "1st" -> 1)
+                const match = finish.match(/^(\d+)/);
+                const placementNum = match ? parseInt(match[1]) : NaN;
+                
+                // Verifica 5-0 primeiro (prioridade)
                 if (/\b5\s*-\s*0\b/.test(finishLower)) {
                     playerData.fiveO++;
                 } 
+                // Verifica colocações numéricas
                 else if (!isNaN(placementNum) && placementNum > 0) {
-                    if (placementNum <= 8) {
+                    if (placementNum === 1) {
+                        playerData.top1++;
+                    } else if (placementNum <= 8) {
                         playerData.top8++;
-                    }
-                    else if (placementNum <= 16) { 
+                    } else if (placementNum <= 16) { 
                         playerData.top16++;
-                    }
-                    else if (placementNum <= 32) {
+                    } else if (placementNum <= 32) {
                         playerData.top32++;
-                    }
-                } 
-                else {
-                    const match = finishLower.match(/^(\d+)/);
-                    if (match) {
-                        const extractedNum = parseInt(match[1]);
-                        
-                        if (extractedNum <= 8) {
-                            playerData.top8++;
-                        } else if (extractedNum <= 16) {
-                            playerData.top16++;
-                        } else if (extractedNum <= 32) {
-                            playerData.top32++;
-                        }
                     }
                 }
 
@@ -252,6 +248,7 @@
 
         document.getElementById('player-name').textContent = playerData.username;
         document.getElementById('total-events').textContent = playerData.totalEvents;
+        document.getElementById('total-top1').textContent = playerData.top1;
         document.getElementById('total-top8').textContent = playerData.top8;
         document.getElementById('total-top16').textContent = playerData.top16;
         document.getElementById('total-5-0').textContent = playerData.fiveO;
@@ -275,23 +272,24 @@
                 const finishLower = result.placement.toLowerCase();
                 const placementText = result.placement.trim();
                 
-                // Extrai o número da colocação (ex: "1st" -> 1, "12th" -> 12, "5-0" -> 5)
-                let placementNum = parseInt(placementText);
+                // Extrai o número completo da colocação
+                const match = placementText.match(/^(\d+)/);
+                const placementNum = match ? parseInt(match[1]) : NaN;
                 
                 // Verifica se é 5-0
                 if (/\b5\s*-\s*0\b/i.test(finishLower)) {
                     placementStyle = 'color: #4CAF50; font-weight: bold;';
                 }
-                // 1º lugar
-                else if (placementNum === 1 || finishLower.includes('1st')) {
+                // 1º lugar - VERIFICA NÚMERO EXATO
+                else if (placementNum === 1) {
                     placementStyle = 'color: #FFD700; font-weight: bold;';
                 }
-                // 2º lugar
-                else if (placementNum === 2 || finishLower.includes('2nd')) {
+                // 2º lugar - VERIFICA NÚMERO EXATO
+                else if (placementNum === 2) {
                     placementStyle = 'color: #C0C0C0; font-weight: bold;';
                 }
-                // 3º lugar
-                else if (placementNum === 3 || finishLower.includes('3rd')) {
+                // 3º lugar - VERIFICA NÚMERO EXATO
+                else if (placementNum === 3) {
                     placementStyle = 'color: #CD7F32; font-weight: bold;';
                 }
                 // 4º-8º lugar (Top 8)
