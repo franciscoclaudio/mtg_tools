@@ -194,92 +194,95 @@
         }
     }
 
-// FUNÇÃO MODIFICADA: Renomeada para processar apenas uma página
-function parsePageResults(doc) {
-    // Buscar todas as linhas da tabela de resultados
-    const rows = doc.querySelectorAll('table tbody tr');
-    
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length < 5) return;
+        // FUNÇÃO MODIFICADA: Renomeada para processar apenas uma página
+        function parsePageResults(doc) {
+            // Buscar todas as linhas da tabela de resultados
+            const rows = doc.querySelectorAll('table tbody tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length < 5) return;
 
-        // Extrair dados de cada coluna
-        const date = cells[0]?.textContent.trim() || '';
-        const eventName = cells[1]?.textContent.trim() || '';
-        const format = cells[2]?.textContent.trim() || '';
-        const deckName = cells[3]?.textContent.trim() || '';
-        let finish = cells[4]?.textContent.trim() || ''; // Usar 'let' para possível manipulação
+                // Extrair dados de cada coluna
+                const date = cells[0]?.textContent.trim() || '';
+                const eventName = cells[1]?.textContent.trim() || '';
+                const format = cells[2]?.textContent.trim() || '';
+                const deckName = cells[3]?.textContent.trim() || '';
+                const finish = cells[4]?.textContent.trim() || ''; // Colocação original
 
-        // Adicionar aos resultados (apenas se houver data e evento)
-        if (date && eventName) {
-            playerData.recentResults.push({
-                date: date,
-                event: eventName,
-                format: format,
-                deck: deckName,
-                placement: finish
-            });
+                // Adicionar aos resultados (apenas se houver data e evento)
+                if (date && eventName) {
+                    playerData.recentResults.push({
+                        date: date,
+                        event: eventName,
+                        format: format,
+                        deck: deckName,
+                        placement: finish
+                    });
 
-            playerData.totalEvents++;
+                    playerData.totalEvents++;
 
-            // --- LÓGICA DE CONTAGEM CORRIGIDA ---
+                    // --- LÓGICA DE CONTAGEM CORRIGIDA E EXCLUSIVA ---
 
-            const finishLower = finish.toLowerCase();
-            const placementNum = parseInt(finish); // Tenta obter o número
-
-            // 1. 5-0 em Ligas
-            if (finishLower.includes('5-0')) {
-                playerData.fiveO++;
-            }
-            // 2. Colocações numéricas em eventos (Exemplo: 1st, 16th, 23rd)
-            else if (!isNaN(placementNum) && placementNum > 0) {
-                
-                // Top 8 (colocação mais específica)
-                if (placementNum <= 8) {
-                    playerData.top8++;
-                }
-                // Top 16 (Se não for Top 8, verifica se é 9-16)
-                else if (placementNum <= 16) {
-                    playerData.top16++;
-                }
-                // Top 32 (Se não for Top 16/8, verifica se é 17-32)
-                else if (placementNum <= 32) {
-                    playerData.top32++;
-                }
-                // Outras colocações acima de 32 são apenas contadas no totalEvents
-            } 
-            // 3. Tratar colocações com sufixo ('st', 'nd', 'th') que não foram convertidas para número
-            else {
-                // Tenta extrair o número de strings como "1st", "16th"
-                const match = finishLower.match(/^(\d+)/);
-                if (match) {
-                    const extractedNum = parseInt(match[1]);
+                    const finishLower = finish.toLowerCase();
+                    const placementNum = parseInt(finish); // Tenta obter o número (Ex: '12th' -> 12)
                     
-                    if (extractedNum <= 8) {
-                        playerData.top8++;
-                    } else if (extractedNum <= 16) {
-                        playerData.top16++;
-                    } else if (extractedNum <= 32) {
-                        playerData.top32++;
+                    // 1. 5-0 em Ligas (Prioridade máxima, usa regex para incluir "5-0" e "5 - 0")
+                    if (/\b5\s*-\s*0\b/.test(finishLower)) {
+                        playerData.fiveO++;
+                    } 
+                    
+                    // 2. Colocações numéricas (Verificação com if/else if para exclusividade)
+                    else if (!isNaN(placementNum) && placementNum > 0) {
+                        
+                        // Posição 1-8: Conta SOMENTE para Top 8
+                        if (placementNum <= 8) {
+                            playerData.top8++;
+                        }
+                        
+                        // Posição 9-16: Conta SOMENTE para Top 16 (Se não for Top 8)
+                        else if (placementNum <= 16) { 
+                            playerData.top16++;
+                        }
+                        
+                        // Posição 17-32: Conta SOMENTE para Top 32 (Se não for Top 16/8)
+                        else if (placementNum <= 32) {
+                            playerData.top32++;
+                        }
+                    } 
+                    
+                    // 3. Tratar colocações com sufixo (Ex: "3rd", "12th")
+                    else {
+                        // Extrai o número da string (Ex: "12th" -> 12)
+                        const match = finishLower.match(/^(\d+)/);
+                        if (match) {
+                            const extractedNum = parseInt(match[1]);
+                            
+                            // Lógica exclusiva com base no número extraído
+                            if (extractedNum <= 8) {
+                                playerData.top8++;
+                            } else if (extractedNum <= 16) {
+                                playerData.top16++;
+                            } else if (extractedNum <= 32) {
+                                playerData.top32++;
+                            }
+                        }
+                    }
+                    // ------------------------------------
+
+                    // Estatísticas de decks
+                    if (deckName) {
+                        playerData.deckStats[deckName] = (playerData.deckStats[deckName] || 0) + 1;
+                    }
+
+                    // Estatísticas de formatos
+                    if (format) {
+                        playerData.formatStats[format] = (playerData.formatStats[format] || 0) + 1;
                     }
                 }
-            }
-            // ------------------------------------
-
-            // Estatísticas de decks
-            if (deckName) {
-                playerData.deckStats[deckName] = (playerData.deckStats[deckName] || 0) + 1;
-            }
-
-            // Estatísticas de formatos
-            if (format) {
-                playerData.formatStats[format] = (playerData.formatStats[format] || 0) + 1;
-            }
+            });
         }
-    });
-}
-
-        function displayResults() {
+       function displayResults() {
             if (!playerData) return;
 
             document.getElementById('player-name').textContent = playerData.username;
