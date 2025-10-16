@@ -26,29 +26,29 @@
         
         <div class="user-selector">
             <label for="user-select">Selecione o Usuário:</label>
-            <select id="user-select" required>
+            <select style="text-align: center;" id="user-select" required>
                 <option value="" disabled selected>Selecione seu Nome</option>
             </select>
             <div id="novo-usuario-container">
                 <label for="novo-usuario-input">Nome do Novo Usuário:</label>
-                <input type="text" id="novo-usuario-input" placeholder="Ex: Gominho">
+                <input style="text-align: center;" type="text" id="novo-usuario-input" placeholder="Ex: Gominho">
                 <button type="button" onclick="setNovoUsuario()" class="btn-create-user">Entrar</button>
             </div>
         </div>
         <div class="format-selector">
             <label for="current-format-select">Selecione o formato:</label>
-            <select id="current-format-select" required disabled>
+            <select style="text-align: center;" id="current-format-select" required disabled>
                 <option value="" disabled selected>Selecione o Formato</option>
             </select>
         </div>
         <div class="deck-selector">
             <label for="current-deck-select">Selecione seu Deck Atual:</label>
-            <select id="current-deck-select" required disabled>
+            <select style="text-align: center;" id="current-deck-select" required disabled>
                 <option value="" disabled selected>Selecione um Usuário e Formato Primeiro</option>
             </select>
             <div id="novo-deck-container">
                 <label for="novo-deck-input">Nome do Novo Deck:</label>
-                <input type="text" id="novo-deck-input" placeholder="Ex: Boros Energy">
+                <input style="text-align: center;" type="text" id="novo-deck-input" placeholder="Ex: Boros Energy">
                 <button type="button" onclick="criarNovoDeck()" class="btn-create-deck">Criar Deck</button>
             </div>
         </div>
@@ -58,38 +58,38 @@
                 <legend>Registrar Nova Partida</legend>
                 
                 <label for="deck-oponente-select">Deck Oponente:</label>
-                <select id="deck-oponente-select" required disabled>
+                <select style="text-align: center;" id="deck-oponente-select" required disabled>
                     <option value="" disabled selected>Selecione o Deck Oponente</option>
                 </select>
                 <div id="nova-matchup-container">
                     <label for="nova-matchup-input">Nova Matchup:</label>
-                    <input type="text" id="nova-matchup-input" placeholder="Ex: Boros Energy">
+                    <input style="text-align: center;" type="text" id="nova-matchup-input" placeholder="Ex: Boros Energy">
                 </div>
                 
                 <label for="play-draw-select">Você estava:</label>
                 <select id="play-draw-select" required disabled>
-                    <option value="" disabled selected>Play ou Draw?</option>
-                    <option value="play">Jogando (Play)</option>
-                    <option value="draw">Sacando (Draw)</option>
+                    <option style="text-align: center;" value="" disabled selected>Play ou Draw?</option>
+                    <option style="text-align: center;" value="play">Jogando (Play)</option>
+                    <option style="text-align: center;" value="draw">Sacando (Draw)</option>
                 </select>
 
                 <label for="g1-result">Resultado do Game 1:</label>
                 <select id="g1-result" required disabled>
-                    <option value="" disabled selected>G1</option>
-                    <option value="win">Vitória</option>
-                    <option value="loss">Derrota</option>
+                    <option style="text-align: center;" value="" disabled selected>G1</option>
+                    <option style="text-align: center;" value="win">Vitória</option>
+                    <option style="text-align: center;" value="loss">Derrota</option>
                 </select>
                 <label for="g2-result">Resultado do Game 2:</label>
                 <select id="g2-result" required disabled>
-                    <option value="" disabled selected>G2</option>
-                    <option value="win">Vitória</option>
-                    <option value="loss">Derrota</option>
+                    <option style="text-align: center;" value="" disabled selected>G2</option>
+                    <option style="text-align: center;" value="win">Vitória</option>
+                    <option style="text-align: center;" value="loss">Derrota</option>
                 </select>
                 <label for="g3-result">Resultado do Game 3:</label>
                 <select id="g3-result" disabled>
-                    <option value="not_played" selected>Não Jogou (2-0 ou 0-2)</option>
-                    <option value="win">Vitória</option>
-                    <option value="loss">Derrota</option>
+                    <option style="text-align: center;" value="not_played" selected>Não Jogou (2-0 ou 0-2)</option>
+                    <option style="text-align: center;" value="win">Vitória</option>
+                    <option style="text-align: center;" value="loss">Derrota</option>
                 </select>
                 <button type="submit" disabled id="submit-match">Registrar Partida</button>
             </fieldset>
@@ -137,8 +137,8 @@
 
         <form id="matchup-stats-form">
             <h2>Estatísticas por Matchup</h2>
-            <label for="matchup-select">Selecione um Matchup:</label>
-            <select id="matchup-select" disabled>
+            <label for="matchup-select">Selecione uma Matchup:</label>
+            <select style="text-align: center;" id="matchup-select" disabled>
                 <option value="" selected>Selecione um Deck...</option>
             </select>
         </form>
