@@ -246,7 +246,7 @@
     function displayResults() {
         if (!playerData) return;
 
-        document.getElementById('player-name').textContent = playerData.username;
+        document.getElementById('player-name').textContent = ' ' + playerData.username;
         document.getElementById('total-events').textContent = playerData.totalEvents;
         document.getElementById('total-top1').textContent = playerData.top1;
         document.getElementById('total-top8').textContent = playerData.top8;
