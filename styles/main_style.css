@@ -12,10 +12,10 @@
     --color-accent: #10b981; /* Verde Esmeralda (destaque) */
     --color-brown: #8b7355; /* Marrom suave */
     --color-brown-dark: #6b5744; /* Marrom escuro */
-    --color-bg-light: #f5f5f5; /* Cinza claro */
+    --color-bg-light: #737272; /* Cinza claro */
     --color-bg-card: #737272; /* NOVO: Cinza médio/claro para fundos de blocos/cards */
-    --color-text-dark: #2d2d2d; /* Cinza escuro para texto */
-    --color-text-light: #6b6b6b; /* Cinza médio */
+    --color-text-dark: #086b4a; /* Cinza escuro para texto */
+    --color-text-light: #13e39e; /* Cinza médio */
     --color-border: #d4d4d4; /* Cinza para bordas */
     --color-success: #10b981;
     --color-error: #dc2626;
