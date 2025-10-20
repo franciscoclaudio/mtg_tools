@@ -2,7 +2,7 @@
 /* ARQUIVO CSS UNIFICADO - VERSÃO AMIGÁVEL */
 /* Design limpo mantendo cores originais (Verde, Cinza, Marrom) */
 /* Todos os textos centralizados */
-/* FUNDOS DE BLOCOS (CARTÕES/CONTAINERS) AGORA EM CINZA MÉDIO (#e8e8e8) */
+/* FUNDOS DE BLOCOS AGORA EM CINZA ESCURO (#6b6b6b) E TEXTO CLARO PARA LEGIBILIDADE */
 /* ============================================ */
 
 /* --- VARIÁVEIS CSS --- */
@@ -12,11 +12,11 @@
     --color-accent: #10b981; /* Verde Esmeralda (destaque) */
     --color-brown: #8b7355; /* Marrom suave */
     --color-brown-dark: #6b5744; /* Marrom escuro */
-    --color-bg-light: #737272; /* Cinza claro */
-    --color-bg-card: #737272; /* NOVO: Cinza médio/claro para fundos de blocos/cards */
-    --color-text-dark: #086b4a; /* Cinza escuro para texto */
-    --color-text-light: #13e39e; /* Cinza médio */
-    --color-border: #d4d4d4; /* Cinza para bordas */
+    --color-bg-light: #606060; /* NOVO: Cinza mais escuro para forms/hover */
+    --color-bg-card: #6b6b6b; /* NOVO: Cinza escuro para fundos de blocos/cards */
+    --color-text-dark: #f5f5f5; /* NOVO: Cinza muito claro/quase branco para o texto principal */
+    --color-text-light: #b0b0b0; /* NOVO: Cinza claro para texto secundário */
+    --color-border: #999999; /* NOVO: Escurecer a borda para melhor visualização no fundo escuro */
     --color-success: #10b981;
     --color-error: #dc2626;
     --color-warning: #f59e0b;
@@ -39,6 +39,7 @@ body {
     align-items: center;
     justify-content: flex-start;
     padding: 20px;
+    /* Usa a nova cor de texto claro */
     color: var(--color-text-dark);
     line-height: 1.6;
     /* Alinhamento de texto centralizado para todo o corpo */
@@ -46,7 +47,7 @@ body {
 }
 
 .container {
-    /* Usa o novo Cinza Médio/Claro */
+    /* Usa o novo Cinza Escuro */
     background: var(--color-bg-card); 
     border-radius: 16px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
@@ -81,7 +82,7 @@ nav ul {
     margin: 0;
     display: flex;
     justify-content: center;
-    /* Usa o novo Cinza Médio/Claro */
+    /* Usa o novo Cinza Escuro */
     background: var(--color-bg-card); 
     border-radius: 12px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15);
@@ -96,6 +97,7 @@ nav li a {
     display: block;
     padding: 14px 20px;
     text-decoration: none;
+    /* Usa a nova cor de texto secundário claro */
     color: var(--color-text-light);
     transition: all 0.3s ease;
     text-align: center;
@@ -104,15 +106,19 @@ nav li a {
 }
 
 nav li a:hover {
-    color: var(--color-primary);
+    /* NOVO: Usa a cor de destaque para o texto no hover para contraste */
+    color: var(--color-accent);
+    /* Fundo de hover cinza mais escuro */
     background-color: var(--color-bg-light);
 }
 
 nav li a.active {
-    color: var(--color-primary);
+    /* NOVO: Usa a cor de destaque para o texto ativo para contraste */
+    color: var(--color-accent);
     border-bottom-color: var(--color-accent);
     font-weight: 600;
-    background-color: rgba(16, 185, 129, 0.05);
+    /* NOVO: Aumenta a opacidade para melhor visualização no fundo escuro */
+    background-color: rgba(16, 185, 129, 0.2);
 }
 
 /* --- HEADER --- */
@@ -131,6 +137,7 @@ header h1 {
 }
 
 header h2 {
+    /* Usa a nova cor de texto secundário claro */
     color: var(--color-text-light);
     font-size: 1em;
     font-weight: 400;
@@ -141,6 +148,7 @@ header h2 {
 
 /* --- TÍTULOS DE SEÇÃO --- */
 h2 {
+    /* Usa a nova cor de texto principal claro */
     color: var(--color-text-dark);
     font-size: 1.3em;
     margin: 30px 0 20px 0;
@@ -163,6 +171,7 @@ h2 .emoji {
 }
 
 h3 {
+    /* Usa a nova cor de texto principal claro */
     color: var(--color-text-dark);
     font-size: 1.2em;
     margin: 25px 0 15px 0;
@@ -170,6 +179,7 @@ h3 {
 }
 
 h4 {
+    /* Usa a nova cor de texto secundário claro */
     color: var(--color-text-light);
     font-size: 1em;
     margin: 20px 0 10px 0;
@@ -182,6 +192,7 @@ form,
 .format-selector, 
 .deck-selector,
 .search-section {
+    /* MANTIDO como Cinza Mais Escuro (var(--color-bg-light)) para contraste com o fundo do container */
     background-color: var(--color-bg-light);
     padding: 20px;
     border-radius: 12px;
@@ -191,10 +202,11 @@ form,
 }
 
 fieldset {
+    /* MANTIDO como Cinza Mais Escuro (var(--color-bg-light)) */
     background-color: var(--color-bg-light);
     padding: 20px;
     border-radius: 12px;
-    /* Ajustado para usar o cinza mais escuro do card para o campo */
+    /* Borda do card */
     border: 1px solid var(--color-bg-card); 
     margin-bottom: 20px;
     text-align: center; 
@@ -212,6 +224,7 @@ label {
     display: block;
     margin-bottom: 8px;
     font-weight: 500;
+    /* Usa a nova cor de texto principal claro */
     color: var(--color-text-dark);
     font-size: 0.95em;
     text-align: center;
@@ -226,9 +239,9 @@ select {
     border-radius: 8px;
     border: 2px solid var(--color-border);
     box-sizing: border-box;
-    /* Fundo cinza claro (var(--color-bg-light)) - MANTIDO DA ÚLTIMA ALTERAÇÃO */
+    /* Fundo dos inputs (var(--color-bg-light) é o cinza mais escuro) */
     background-color: var(--color-bg-light); 
-    /* Cor do texto escuro e visível (var(--color-text-dark)) - MANTIDO */
+    /* Cor do texto nos inputs é a cor principal clara */
     color: var(--color-text-dark); 
     transition: all 0.2s ease;
     font-size: 15px;
@@ -244,7 +257,7 @@ input:focus,
 select:focus {
     outline: none;
     border-color: var(--color-accent);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
 }
 
 /* --- BOTÕES --- */
@@ -255,17 +268,18 @@ button {
     border-radius: 8px;
     border: none;
     background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    /* Texto do botão mantido branco */
     color: white;
     cursor: pointer;
     font-weight: 600;
     font-size: 15px;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 6px -1px rgba(26, 77, 46, 0.2);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
 }
 
 button:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 8px 15px rgba(26, 77, 46, 0.3);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
 }
 
 button:active:not(:disabled) {
@@ -310,13 +324,13 @@ button[type="submit"]:hover:not(:disabled) {
     text-decoration: none;
     font-weight: 600;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 6px -1px rgba(26, 77, 46, 0.2);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
     text-align: center;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 15px rgba(26, 77, 46, 0.3);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
 }
 
 /* --- SEÇÃO DE BUSCA --- */
@@ -340,6 +354,7 @@ button[type="submit"]:hover:not(:disabled) {
 
 /* --- ESTATÍSTICAS --- */
 .stats-container {
+    /* MANTIDO como Cinza Mais Escuro (var(--color-bg-light)) para contraste */
     background-color: var(--color-bg-light);
     border: 1px solid var(--color-border);
     border-radius: 12px;
@@ -358,7 +373,7 @@ button[type="submit"]:hover:not(:disabled) {
 
 .stat-card,
 .stats-item {
-    /* Usa o novo Cinza Médio/Claro */
+    /* Usa o novo Cinza Escuro */
     background-color: var(--color-bg-card); 
     padding: 20px;
     border-radius: 10px;
@@ -370,7 +385,7 @@ button[type="submit"]:hover:not(:disabled) {
 .stat-card:hover,
 .stats-item:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     border-color: var(--color-accent);
 }
 
@@ -384,6 +399,7 @@ button[type="submit"]:hover:not(:disabled) {
 
 .stat-label,
 .stats-label {
+    /* Usa a nova cor de texto secundário claro */
     color: var(--color-text-light);
     font-size: 0.9em;
     font-weight: 500;
@@ -401,7 +417,7 @@ button[type="submit"]:hover:not(:disabled) {
 table {
     width: 100%;
     border-collapse: collapse;
-    /* Usa o novo Cinza Médio/Claro */
+    /* Usa o novo Cinza Escuro */
     background-color: var(--color-bg-card); 
     margin-left: auto;
     margin-right: auto;
@@ -423,26 +439,28 @@ td {
     padding: 12px 14px;
     text-align: center;
     border-bottom: 1px solid var(--color-border);
+    /* Usa a nova cor de texto principal claro */
     color: var(--color-text-dark);
 }
 
 tbody tr:hover {
+    /* Fundo de hover cinza mais escuro */
     background-color: var(--color-bg-light);
 }
 
 /* Cores para colocações nas tabelas */
 tbody tr td[style*="color: #FFD700"] {
-    color: #d97706 !important; /* Ouro mais sóbrio */
+    color: #ffd700 !important; /* Ouro */
     font-weight: bold;
 }
 
 tbody tr td[style*="color: #C0C0C0"] {
-    color: #6b7280 !important; /* Prata mais sóbrio */
+    color: #c0c0c0 !important; /* Prata */
     font-weight: bold;
 }
 
 tbody tr td[style*="color: #CD7F32"] {
-    color: var(--color-brown) !important; /* Bronze */
+    color: #cd7f32 !important; /* Bronze */
     font-weight: bold;
 }
 
@@ -457,7 +475,7 @@ tbody tr td[style*="color: #4CAF50"] {
     justify-content: center; 
     align-items: center;
     padding: 14px 18px;
-    /* Usa o novo Cinza Médio/Claro */
+    /* Usa o novo Cinza Escuro */
     background-color: var(--color-bg-card); 
     margin-bottom: 10px;
     border-radius: 8px;
@@ -469,6 +487,7 @@ tbody tr td[style*="color: #4CAF50"] {
 }
 
 .deck-stat-item:hover {
+    /* Fundo de hover cinza mais escuro */
     background-color: var(--color-bg-light);
     border-color: var(--color-accent);
     transform: translateX(0); 
@@ -476,6 +495,7 @@ tbody tr td[style*="color: #4CAF50"] {
 
 .deck-name {
     font-weight: 600;
+    /* Usa a nova cor de texto principal claro */
     color: var(--color-text-dark);
     margin-right: 10px; 
 }
@@ -487,7 +507,7 @@ tbody tr td[style*="color: #4CAF50"] {
 
 /* --- RESULTADOS (#results para Calculadora) --- */
 #results {
-    background: linear-gradient(135deg, rgba(26, 77, 46, 0.08) 0%, rgba(37, 99, 61, 0.08) 100%);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.15) 100%);
     border: 2px solid var(--color-accent);
     padding: 25px;
     border-radius: 12px;
@@ -503,6 +523,7 @@ tbody tr td[style*="color: #4CAF50"] {
 }
 
 #results p {
+    /* Usa a nova cor de texto principal claro */
     color: var(--color-text-dark);
     font-size: 1.1em;
     margin-bottom: 10px;
@@ -526,41 +547,44 @@ tbody tr td[style*="color: #4CAF50"] {
 
 #status.loading,
 .loading {
+    /* Cor do texto secundário claro */
     color: var(--color-text-light);
+    /* Fundo mais escuro */
     background-color: var(--color-bg-light);
     border: 1px solid var(--color-border);
 }
 
 #status.error,
 .error {
-    color: #991b1b;
-    background-color: #fef2f2;
-    border: 1px solid #fecaca;
+    color: #fda4af; /* Vermelho claro */
+    background-color: #450a0a; /* Fundo vermelho escuro */
+    border: 1px solid #7f1d1d;
 }
 
 #status.success,
 .success {
-    color: #065f46;
-    background-color: #ecfdf5;
-    border: 1px solid #a7f3d0;
+    color: #6ee7b7; /* Verde claro */
+    background-color: #064e3b; /* Fundo verde escuro */
+    border: 1px solid #14b8a6;
 }
 
 #status.warning,
 .warning {
-    color: #92400e;
-    background-color: #fffbeb;
-    border: 1px solid #fde68a;
+    color: #fde047; /* Amarelo claro */
+    background-color: #78350f; /* Fundo laranja escuro */
+    border: 1px solid #b45309;
 }
 
 #status.info,
 .info {
-    color: var(--color-primary);
-    background-color: #f0fdf4;
-    border: 1px solid #bbf7d0;
+    color: #93c5fd; /* Azul claro */
+    background-color: #1e3a8a; /* Fundo azul escuro */
+    border: 1px solid #3b82f6;
 }
 
 /* --- UTILITY CONTAINER --- */
 .utility-container {
+    /* Fundo mais escuro */
     background-color: var(--color-bg-light);
     border: 1px solid var(--color-border);
     border-radius: 12px;
@@ -569,6 +593,7 @@ tbody tr td[style*="color: #4CAF50"] {
 }
 
 .utility-container h4 {
+    /* Usa a nova cor de texto principal claro */
     color: var(--color-text-dark);
     margin-top: 0;
     margin-bottom: 15px;
@@ -592,8 +617,9 @@ tbody tr td[style*="color: #4CAF50"] {
     transform: translateX(-50%);
     z-index: 1000;
     max-width: 400px;
-    /* Usa o novo Cinza Médio/Claro */
+    /* Usa o novo Cinza Escuro */
     background: var(--color-bg-card); 
+    /* Usa a nova cor de texto principal claro */
     color: var(--color-text-dark);
     padding: 16px;
     border-radius: 12px;
@@ -638,11 +664,13 @@ tbody tr td[style*="color: #4CAF50"] {
     font-weight: 600;
     font-size: 1em;
     margin-bottom: 4px;
+    /* Usa a nova cor de texto principal claro */
     color: var(--color-text-dark);
 }
 
 #installPrompt .install-subtitle {
     font-size: 0.85em;
+    /* Usa a nova cor de texto secundário claro */
     color: var(--color-text-light);
 }
 
@@ -669,6 +697,7 @@ tbody tr td[style*="color: #4CAF50"] {
 #dismissInstall {
     background: none;
     border: none;
+    /* Usa a nova cor de texto secundário claro */
     color: var(--color-text-light);
     cursor: pointer;
     padding: 4px;
@@ -678,6 +707,7 @@ tbody tr td[style*="color: #4CAF50"] {
 }
 
 #dismissInstall:hover {
+    /* Usa a nova cor de texto principal claro */
     color: var(--color-text-dark);
 }
 
@@ -692,6 +722,7 @@ footer {
     margin-top: 30px;
     padding-top: 20px;
     border-top: 1px solid var(--color-border);
+    /* Usa a nova cor de texto secundário claro */
     color: var(--color-text-light);
     font-size: 0.9em;
 }
@@ -703,11 +734,12 @@ footer {
 }
 
 ::-webkit-scrollbar-track {
+    /* Fundo de hover cinza mais escuro */
     background: var(--color-bg-light);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #c7c7c7;
+    background: #444444; /* Cinza escuro */
     border-radius: 5px;
 }
 
