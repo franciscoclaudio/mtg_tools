@@ -2,6 +2,7 @@
 /* ARQUIVO CSS UNIFICADO - VERSÃO AMIGÁVEL */
 /* Design limpo mantendo cores originais (Verde, Cinza, Marrom) */
 /* Todos os textos centralizados */
+/* Campos de formulário: Fundo cinza claro e texto escuro visível */
 /* ============================================ */
 
 /* --- VARIÁVEIS CSS --- */
@@ -95,7 +96,6 @@ nav li a {
     text-decoration: none;
     color: var(--color-text-light);
     transition: all 0.3s ease;
-    /* MANTIDO: já estava centralizado */
     text-align: center;
     font-weight: 500;
     border-bottom: 3px solid transparent;
@@ -115,7 +115,6 @@ nav li a.active {
 
 /* --- HEADER --- */
 header {
-    /* REMOVIDO: text-align: center; - já será herdado do body, mas pode ser redundante e foi mantido */
     text-align: center;
     margin-bottom: 30px;
     padding-bottom: 20px;
@@ -144,13 +143,11 @@ h2 {
     font-size: 1.3em;
     margin: 30px 0 20px 0;
     font-weight: 600;
-    /* REMOVIDO: text-align: center; - já será herdado do body */
     padding-top: 20px;
     border-top: 1px solid var(--color-border);
-    /* Mantido flex para o alinhamento interno do emoji */
     display: flex; 
     align-items: center;
-    justify-content: center; /* NOVO: Centraliza o conteúdo (emoji + texto) do h2 */
+    justify-content: center; /* Centraliza o conteúdo (emoji + texto) do h2 */
 }
 
 h2:first-of-type {
@@ -188,7 +185,6 @@ form,
     border-radius: 12px;
     margin-bottom: 20px;
     border: 1px solid var(--color-border);
-    /* NOVO: Alinha o conteúdo interno do formulário/seção, como labels e títulos */
     text-align: center; 
 }
 
@@ -198,7 +194,6 @@ fieldset {
     border-radius: 12px;
     border: 1px solid var(--color-bg-card);
     margin-bottom: 20px;
-    /* NOVO: Alinha o conteúdo interno do fieldset */
     text-align: center; 
 }
 
@@ -207,7 +202,6 @@ legend {
     font-weight: 600;
     font-size: 1.1em;
     padding: 0 10px;
-    /* NOVO: Centraliza o texto da legenda (pode variar de navegador, mas ajuda) */
     text-align: center; 
 }
 
@@ -217,7 +211,6 @@ label {
     font-weight: 500;
     color: var(--color-text-dark);
     font-size: 0.95em;
-    /* NOVO: Centraliza o texto do label */
     text-align: center;
 }
 
@@ -230,12 +223,13 @@ select {
     border-radius: 8px;
     border: 2px solid var(--color-border);
     box-sizing: border-box;
-    background-color: var(--color-bg-card);
-    color: var(--color-text-dark);
+    /* MUDANÇA: Fundo cinza claro (var(--color-bg-light)) */
+    background-color: var(--color-bg-light); 
+    /* MUDANÇA: Cor do texto escuro e visível (var(--color-text-dark)) */
+    color: var(--color-text-dark); 
     transition: all 0.2s ease;
     font-size: 15px;
     font-family: inherit;
-    /* NOVO: Centraliza o texto digitado/selecionado no input/select */
     text-align: center; 
 }
 
@@ -314,7 +308,6 @@ button[type="submit"]:hover:not(:disabled) {
     font-weight: 600;
     transition: all 0.2s ease;
     box-shadow: 0 4px 6px -1px rgba(26, 77, 46, 0.2);
-    /* MANTIDO: já estava centralizado */
     text-align: center;
 }
 
@@ -328,7 +321,6 @@ button[type="submit"]:hover:not(:disabled) {
     display: flex;
     gap: 10px;
     margin-bottom: 15px;
-    /* NOVO: Centraliza o grupo de inputs/botões */
     justify-content: center; 
 }
 
@@ -358,7 +350,6 @@ button[type="submit"]:hover:not(:disabled) {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 15px;
     margin: 20px 0;
-    /* NOVO: Centraliza o grid em telas maiores */
     justify-content: center; 
 }
 
@@ -367,7 +358,7 @@ button[type="submit"]:hover:not(:disabled) {
     background-color: var(--color-bg-card);
     padding: 20px;
     border-radius: 10px;
-    /* REMOVIDO: text-align: center; - já será herdado do body */
+    text-align: center;
     border: 2px solid var(--color-border);
     transition: all 0.2s ease;
 }
@@ -400,16 +391,13 @@ button[type="submit"]:hover:not(:disabled) {
     width: 100%;
     margin-top: 15px;
     border-radius: 8px;
-    /* Centraliza o container da tabela */
     text-align: center; 
 }
 
 table {
-    /* MANTIDO: Mantém a tabela com 100% de largura dentro do seu container */
     width: 100%;
     border-collapse: collapse;
     background-color: var(--color-bg-card);
-    /* NOVO: Garante que a tabela (bloco) se centralize no seu container */
     margin-left: auto;
     margin-right: auto;
 }
@@ -420,7 +408,7 @@ thead {
 
 th {
     padding: 14px;
-    /* REMOVIDO: text-align: center; - já será herdado do body */
+    text-align: center;
     color: white;
     font-weight: 600;
     font-size: 0.95em;
@@ -428,7 +416,7 @@ th {
 
 td {
     padding: 12px 14px;
-    /* REMOVIDO: text-align: center; - já será herdado do body */
+    text-align: center;
     border-bottom: 1px solid var(--color-border);
     color: var(--color-text-dark);
 }
@@ -461,7 +449,7 @@ tbody tr td[style*="color: #4CAF50"] {
 /* --- DECK STATS --- */
 .deck-stat-item {
     display: flex;
-    justify-content: center; /* NOVO: Centraliza o conteúdo horizontalmente */
+    justify-content: center; /* Centraliza o conteúdo horizontalmente */
     align-items: center;
     padding: 14px 18px;
     background-color: var(--color-bg-card);
@@ -469,31 +457,21 @@ tbody tr td[style*="color: #4CAF50"] {
     border-radius: 8px;
     border: 1px solid var(--color-border);
     transition: all 0.2s ease;
-    /* NOVO: Garante que o item (bloco) se centralize no seu container */
     margin-left: auto;
     margin-right: auto;
-    /* NOVO: Adiciona um max-width para que não ocupe 100% e pareça um bloco centralizado */
     max-width: 500px;
 }
-
-/* Ajusta o deck-stat-item após a centralização para manter o espaçamento do conteúdo */
-.deck-stat-item .deck-name {
-    margin-right: 10px; /* Adiciona um pequeno espaço entre nome e count */
-}
-
-/* Remove o justify-content: space-between para não espalhar */
-/* .deck-stat-item: { justify-content: space-between; } */
 
 .deck-stat-item:hover {
     background-color: var(--color-bg-light);
     border-color: var(--color-accent);
-    /* Mantido o transform para efeito visual */
     transform: translateX(0); 
 }
 
 .deck-name {
     font-weight: 600;
     color: var(--color-text-dark);
+    margin-right: 10px; 
 }
 
 .deck-count {
@@ -531,7 +509,7 @@ tbody tr td[style*="color: #4CAF50"] {
 
 /* --- MENSAGENS DE STATUS --- */
 #status {
-    /* REMOVIDO: text-align: center; - já será herdado do body */
+    text-align: center;
     font-weight: 500;
     font-size: 1em;
     padding: 14px 20px;
@@ -618,7 +596,6 @@ tbody tr td[style*="color: #4CAF50"] {
     gap: 12px;
     animation: slideUp 0.3s ease-out;
     border: 2px solid var(--color-accent);
-    /* NOVO: Centraliza o texto interno do prompt */
     text-align: center; 
 }
 
@@ -642,13 +619,11 @@ tbody tr td[style*="color: #4CAF50"] {
     height: 32px;
     flex-shrink: 0;
     color: var(--color-accent);
-    /* NOVO: Centraliza o SVG/Ícone */
     margin: 0 auto;
 }
 
 #installPrompt .install-content {
     flex-grow: 1;
-    /* NOVO: Centraliza o texto interno */
     text-align: center; 
 }
 
@@ -675,7 +650,7 @@ tbody tr td[style*="color: #4CAF50"] {
     white-space: nowrap;
     transition: all 0.2s ease;
     width: auto;
-    margin: 0 auto; /* NOVO: Centraliza o botão dentro do flex container */
+    margin: 0 auto; 
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -692,7 +667,7 @@ tbody tr td[style*="color: #4CAF50"] {
     padding: 4px;
     transition: color 0.2s ease;
     width: auto;
-    margin: 0 auto; /* NOVO: Centraliza o botão dentro do flex container */
+    margin: 0 auto;
 }
 
 #dismissInstall:hover {
@@ -706,7 +681,7 @@ tbody tr td[style*="color: #4CAF50"] {
 
 /* --- FOOTER --- */
 footer {
-    /* REMOVIDO: text-align: center; - já será herdado do body */
+    text-align: center;
     margin-top: 30px;
     padding-top: 20px;
     border-top: 1px solid var(--color-border);
@@ -754,7 +729,6 @@ footer {
 
     nav ul {
         overflow-x: auto;
-        /* MANTIDO: Mantém o flex-start para não quebrar a navegação no scroll */
         justify-content: flex-start; 
         border-radius: 8px;
     }
@@ -767,10 +741,6 @@ footer {
 
     .input-group {
         flex-direction: column;
-    }
-    
-    .input-group {
-        /* NOVO: Ajusta o input group para centralizar o bloco após a mudança para coluna */
         align-items: center; 
     }
 
@@ -797,9 +767,7 @@ footer {
     #installPrompt {
         max-width: 90%;
         flex-direction: column;
-        /* REMOVIDO: text-align: center; - já será herdado do body */
         padding: 14px;
-        /* NOVO: Ajusta o alinhamento de itens no modo coluna */
         align-items: center; 
     }
 
@@ -807,7 +775,6 @@ footer {
     #dismissInstall {
         width: 100%;
         margin-top: 8px;
-        /* NOVO: Remove o margin: 0 auto; em mobile para preencher a largura */
         margin-left: 0; 
         margin-right: 0;
     }
@@ -829,7 +796,6 @@ footer {
 }
 
 /* --- UTILITY CLASSES --- */
-/* MANTIDO: text-center para garantir que overrides funcionem */
 .text-center { text-align: center; } 
 .hidden { display: none; }
 .mt-20 { margin-top: 20px; }
