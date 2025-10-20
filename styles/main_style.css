@@ -850,3 +850,9 @@ select,
     -webkit-touch-callout: none;
     user-select: none;
 }
+/* --- AJUSTES DE ESPAÇAMENTO --- */
+/* Garante um espaço após os dois pontos no título de Estatísticas */
+#player-name::before {
+    /* Insere um caractere de espaço em branco */
+    content: " "; 
+}
