@@ -2,7 +2,7 @@
 /* ARQUIVO CSS UNIFICADO - VERSÃO AMIGÁVEL */
 /* Design limpo mantendo cores originais (Verde, Cinza, Marrom) */
 /* Todos os textos centralizados */
-/* Campos de formulário: Fundo cinza claro e texto escuro visível */
+/* FUNDOS DE BLOCOS (CARTÕES/CONTAINERS) AGORA EM CINZA MÉDIO (#e8e8e8) */
 /* ============================================ */
 
 /* --- VARIÁVEIS CSS --- */
@@ -13,7 +13,7 @@
     --color-brown: #8b7355; /* Marrom suave */
     --color-brown-dark: #6b5744; /* Marrom escuro */
     --color-bg-light: #f5f5f5; /* Cinza claro */
-    --color-bg-card: #ffffff;
+    --color-bg-card: #e8e8e8; /* NOVO: Cinza médio/claro para fundos de blocos/cards */
     --color-text-dark: #2d2d2d; /* Cinza escuro para texto */
     --color-text-light: #6b6b6b; /* Cinza médio */
     --color-border: #d4d4d4; /* Cinza para bordas */
@@ -41,12 +41,13 @@ body {
     padding: 20px;
     color: var(--color-text-dark);
     line-height: 1.6;
-    /* NOVO: Alinhamento de texto centralizado para todo o corpo */
+    /* Alinhamento de texto centralizado para todo o corpo */
     text-align: center;
 }
 
 .container {
-    background: var(--color-bg-card);
+    /* Usa o novo Cinza Médio/Claro */
+    background: var(--color-bg-card); 
     border-radius: 16px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
     max-width: 900px;
@@ -80,7 +81,8 @@ nav ul {
     margin: 0;
     display: flex;
     justify-content: center;
-    background: var(--color-bg-card);
+    /* Usa o novo Cinza Médio/Claro */
+    background: var(--color-bg-card); 
     border-radius: 12px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15);
     overflow: hidden;
@@ -147,7 +149,7 @@ h2 {
     border-top: 1px solid var(--color-border);
     display: flex; 
     align-items: center;
-    justify-content: center; /* Centraliza o conteúdo (emoji + texto) do h2 */
+    justify-content: center; 
 }
 
 h2:first-of-type {
@@ -192,7 +194,8 @@ fieldset {
     background-color: var(--color-bg-light);
     padding: 20px;
     border-radius: 12px;
-    border: 1px solid var(--color-bg-card);
+    /* Ajustado para usar o cinza mais escuro do card para o campo */
+    border: 1px solid var(--color-bg-card); 
     margin-bottom: 20px;
     text-align: center; 
 }
@@ -223,9 +226,9 @@ select {
     border-radius: 8px;
     border: 2px solid var(--color-border);
     box-sizing: border-box;
-    /* MUDANÇA: Fundo cinza claro (var(--color-bg-light)) */
+    /* Fundo cinza claro (var(--color-bg-light)) - MANTIDO DA ÚLTIMA ALTERAÇÃO */
     background-color: var(--color-bg-light); 
-    /* MUDANÇA: Cor do texto escuro e visível (var(--color-text-dark)) */
+    /* Cor do texto escuro e visível (var(--color-text-dark)) - MANTIDO */
     color: var(--color-text-dark); 
     transition: all 0.2s ease;
     font-size: 15px;
@@ -355,7 +358,8 @@ button[type="submit"]:hover:not(:disabled) {
 
 .stat-card,
 .stats-item {
-    background-color: var(--color-bg-card);
+    /* Usa o novo Cinza Médio/Claro */
+    background-color: var(--color-bg-card); 
     padding: 20px;
     border-radius: 10px;
     text-align: center;
@@ -397,7 +401,8 @@ button[type="submit"]:hover:not(:disabled) {
 table {
     width: 100%;
     border-collapse: collapse;
-    background-color: var(--color-bg-card);
+    /* Usa o novo Cinza Médio/Claro */
+    background-color: var(--color-bg-card); 
     margin-left: auto;
     margin-right: auto;
 }
@@ -449,10 +454,11 @@ tbody tr td[style*="color: #4CAF50"] {
 /* --- DECK STATS --- */
 .deck-stat-item {
     display: flex;
-    justify-content: center; /* Centraliza o conteúdo horizontalmente */
+    justify-content: center; 
     align-items: center;
     padding: 14px 18px;
-    background-color: var(--color-bg-card);
+    /* Usa o novo Cinza Médio/Claro */
+    background-color: var(--color-bg-card); 
     margin-bottom: 10px;
     border-radius: 8px;
     border: 1px solid var(--color-border);
@@ -556,9 +562,9 @@ tbody tr td[style*="color: #4CAF50"] {
 /* --- UTILITY CONTAINER --- */
 .utility-container {
     background-color: var(--color-bg-light);
-    padding: 20px;
-    border-radius: 12px;
     border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 20px;
     margin-top: 25px;
 }
 
@@ -586,7 +592,8 @@ tbody tr td[style*="color: #4CAF50"] {
     transform: translateX(-50%);
     z-index: 1000;
     max-width: 400px;
-    background: white;
+    /* Usa o novo Cinza Médio/Claro */
+    background: var(--color-bg-card); 
     color: var(--color-text-dark);
     padding: 16px;
     border-radius: 12px;
@@ -767,6 +774,7 @@ footer {
     #installPrompt {
         max-width: 90%;
         flex-direction: column;
+        text-align: center;
         padding: 14px;
         align-items: center; 
     }
