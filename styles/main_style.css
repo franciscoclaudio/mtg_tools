@@ -850,9 +850,9 @@ select,
     -webkit-touch-callout: none;
     user-select: none;
 }
-/* --- AJUSTES DE ESPAÇAMENTO --- */
-/* Garante um espaço após os dois pontos no título de Estatísticas */
-#player-name::before {
-    /* Insere um caractere de espaço em branco */
-    content: " "; 
+/* --- CORREÇÃO DE ESPAÇAMENTO DO TÍTULO DE ESTATÍSTICAS --- */
+/* Garante um espaço após os dois pontos no h2, mesmo com display: flex no pai. */
+.h2-label::after {
+    /* O \00a0 é um espaço inquebrável, mais robusto que " ". */
+    content: "\00a0"; 
 }
