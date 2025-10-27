@@ -451,9 +451,36 @@ button[type="submit"]:hover:not(:disabled) {
 .stats-grid,
 .stats-section {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--spacing-md);
     margin: var(--spacing-lg) 0;
+}
+
+/* Layout especial para 5 itens (3 em cima, 2 embaixo centralizados) */
+.stats-grid:has(.stat-card:nth-child(5):last-child),
+.stats-section:has(.stats-item:nth-child(5):last-child) {
+    grid-template-columns: repeat(6, 1fr);
+}
+
+.stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card,
+.stats-section:has(.stats-item:nth-child(5):last-child) .stats-item {
+    grid-column: span 2;
+}
+
+.stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card:nth-child(4),
+.stats-section:has(.stats-item:nth-child(5):last-child) .stats-item:nth-child(4) {
+    grid-column: 2 / span 2;
+}
+
+.stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card:nth-child(5),
+.stats-section:has(.stats-item:nth-child(5):last-child) .stats-item:nth-child(5) {
+    grid-column: 4 / span 2;
+}
+
+/* Layout para 2 itens (lado a lado ocupando espaço total) */
+.stats-grid:has(.stat-card:nth-child(2):last-child):not(:has(.stat-card:nth-child(3))),
+.stats-section:has(.stats-item:nth-child(2):last-child):not(:has(.stats-item:nth-child(3))) {
+    grid-template-columns: repeat(2, 1fr);
 }
 
 .stat-card,
@@ -863,8 +890,19 @@ footer {
 
     .stats-grid,
     .stats-section {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, 1fr) !important;
         gap: var(--spacing-sm);
+    }
+    
+    /* Remove o layout especial de 5 itens no mobile */
+    .stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card,
+    .stats-section:has(.stats-item:nth-child(5):last-child) .stats-item {
+        grid-column: span 1;
+    }
+    
+    .stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card:nth-child(5),
+    .stats-section:has(.stats-item:nth-child(5):last-child) .stats-item:nth-child(5) {
+        grid-column: span 2;
     }
 
     .stat-value,
@@ -886,7 +924,13 @@ footer {
 @media (max-width: 480px) {
     .stats-grid,
     .stats-section {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* No mobile pequeno, todas as caixas ocupam 1 coluna */
+    .stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card,
+    .stats-section:has(.stats-item:nth-child(5):last-child) .stats-item {
+        grid-column: span 1;
     }
 
     h2 {
