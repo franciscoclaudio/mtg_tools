@@ -1568,4 +1568,561 @@ ul:not(nav ul) li a {
     pointer-events: none;
 }
 
+/* --- MATCHUP MATRIX STYLES --- */
+.matrix-container {
+    overflow-x: auto;
+    margin: 30px 0;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    scrollbar-width: thin;
+}
+
+.matrix-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 4px;
+    min-width: 600px;
+}
+
+.matrix-table th {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    padding: 12px 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    border-radius: var(--radius-md);
+    white-space: nowrap;
+    position: relative;
+}
+
+.matrix-table th::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+}
+
+.matrix-table td {
+    padding: 0;
+    text-align: center;
+    border: none;
+}
+
+.matrix-cell {
+    padding: 16px 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    min-width: 80px;
+    display: block;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.matrix-cell::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+}
+
+.matrix-cell:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.4);
+    z-index: 10;
+}
+
+.matrix-cell:hover::before {
+    opacity: 1;
+}
+
+.matrix-cell small {
+    display: block;
+    font-size: 0.75rem;
+    opacity: 0.85;
+    margin-top: 2px;
+}
+
+/* Cores do Win Rate - Gradientes melhorados */
+.wr-excellent {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.wr-good {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(52, 211, 153, 0.3);
+}
+
+.wr-favorable {
+    background: linear-gradient(135deg, #6ee7b7 0%, #34d399 100%);
+    color: #064e3b;
+    box-shadow: 0 4px 12px rgba(110, 231, 183, 0.3);
+}
+
+.wr-even {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #78350f;
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.wr-unfavorable {
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(251, 146, 60, 0.3);
+}
+
+.wr-bad {
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(248, 113, 113, 0.3);
+}
+
+.wr-terrible {
+    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.wr-no-data {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-muted);
+    font-style: italic;
+    cursor: default;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.wr-no-data:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.deck-row-label {
+    background: linear-gradient(135deg, var(--color-brown) 0%, var(--color-brown-dark) 100%);
+    padding: 12px 16px;
+    font-weight: 700;
+    color: white;
+    border-radius: var(--radius-md);
+    text-align: left;
+    white-space: nowrap;
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Legenda da Matriz */
+.matrix-legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 20px 0;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-base);
+}
+
+.legend-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.legend-color {
+    width: 40px;
+    height: 24px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.legend-label {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Resumo de Estatísticas */
+.stats-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+}
+
+.summary-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+}
+
+.summary-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-accent);
+}
+
+.summary-card:hover::before {
+    opacity: 1;
+}
+
+.summary-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+    line-height: 1.2;
+}
+
+.summary-label {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Modal de Detalhes da Matchup */
+.matchup-detail-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: fadeIn var(--transition-base);
+}
+
+.matchup-detail-modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-xl);
+    padding: 32px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-xl);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    animation: scaleIn var(--transition-base) ease-out;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+.modal-header::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--color-accent), transparent);
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1.3;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 8px;
+    font-size: 1.8rem;
+    width: auto;
+    margin: 0;
+    transition: all var(--transition-base);
+    border-radius: var(--radius-sm);
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: var(--color-text-primary);
+    background: rgba(255, 255, 255, 0.1);
+    transform: rotate(90deg);
+}
+
+.detail-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.detail-stat {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    padding: 20px;
+    border-radius: var(--radius-md);
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all var(--transition-base);
+}
+
+.detail-stat:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-accent);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.detail-stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-accent);
+    margin-bottom: 4px;
+    line-height: 1;
+}
+
+.detail-stat-label {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Seção de Filtros */
+.filter-section {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.filter-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-row label {
+    margin: 0;
+    min-width: 120px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.filter-row select {
+    flex: 1;
+    min-width: 200px;
+    margin: 0;
+}
+
+/* Responsividade da Matriz */
+@media (max-width: 768px) {
+    .matrix-container {
+        padding: 12px;
+        margin: 20px 0;
+    }
+
+    .matrix-table {
+        font-size: 0.85rem;
+        min-width: 500px;
+    }
+
+    .matrix-cell {
+        padding: 12px 8px;
+        font-size: 0.85rem;
+        min-width: 60px;
+    }
+
+    .matrix-cell small {
+        font-size: 0.7rem;
+    }
+
+    .matrix-table th,
+    .deck-row-label {
+        font-size: 0.75rem;
+        padding: 8px 6px;
+    }
+
+    .stats-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .summary-card {
+        padding: 20px;
+    }
+
+    .summary-value {
+        font-size: 2rem;
+    }
+
+    .modal-content {
+        padding: 20px;
+        max-height: 90vh;
+    }
+
+    .modal-title {
+        font-size: 1.2rem;
+    }
+
+    .detail-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .matrix-legend {
+        gap: 8px;
+        padding: 16px;
+    }
+
+    .legend-item {
+        padding: 6px 10px;
+    }
+
+    .legend-label {
+        font-size: 0.75rem;
+    }
+
+    .legend-color {
+        width: 30px;
+        height: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .matrix-cell {
+        padding: 10px 6px;
+        font-size: 0.8rem;
+        min-width: 50px;
+    }
+
+    .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-row label {
+        min-width: auto;
+        margin-bottom: 4px;
+    }
+
+    .filter-row select {
+        min-width: auto;
+    }
+}
+
+/* Animações especiais para a matriz */
+@keyframes matrixFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.matrix-table tbody tr {
+    animation: matrixFadeIn 0.4s ease-out;
+    animation-fill-mode: backwards;
+}
+
+.matrix-table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.matrix-table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+.matrix-table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+.matrix-table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+.matrix-table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+.matrix-table tbody tr:nth-child(n+6) { animation-delay: 0.3s; }
+
+/* Efeito de pulse nas células de destaque */
+@keyframes cellPulse {
+    0%, 100% {
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    50% {
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);
+    }
+}
+
+.matrix-cell.wr-excellent:hover {
+    animation: cellPulse 2s ease-in-out infinite;
+}
+
+/* Melhorias no scrollbar da matriz */
+.matrix-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.matrix-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.matrix-container::-webkit-scrollbar-thumb {
+    background: var(--color-accent);
+    border-radius: 4px;
+}
+
+.matrix-container::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent-light);
+}
+
 /* --- FIM DO ARQUIVO --- */
