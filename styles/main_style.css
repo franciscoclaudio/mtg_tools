@@ -456,25 +456,40 @@ button[type="submit"]:hover:not(:disabled) {
     margin: var(--spacing-lg) 0;
 }
 
-/* Layout especial para 5 itens (3 em cima, 2 embaixo centralizados) */
+/* Layout especial para 5 itens (2 em cima ocupando mais espaço, 3 embaixo) */
 .stats-grid:has(.stat-card:nth-child(5):last-child),
 .stats-section:has(.stats-item:nth-child(5):last-child) {
     grid-template-columns: repeat(6, 1fr);
 }
 
-.stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card,
-.stats-section:has(.stats-item:nth-child(5):last-child) .stats-item {
-    grid-column: span 2;
+/* Primeira caixa (Match WR) - ocupa 3 colunas */
+.stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card:nth-child(1),
+.stats-section:has(.stats-item:nth-child(5):last-child) .stats-item:nth-child(1) {
+    grid-column: 1 / span 3;
 }
 
+/* Segunda caixa (Game WR) - ocupa 3 colunas */
+.stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card:nth-child(2),
+.stats-section:has(.stats-item:nth-child(5):last-child) .stats-item:nth-child(2) {
+    grid-column: 4 / span 3;
+}
+
+/* Terceira caixa (Game 1 WR) - ocupa 2 colunas */
+.stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card:nth-child(3),
+.stats-section:has(.stats-item:nth-child(5):last-child) .stats-item:nth-child(3) {
+    grid-column: 1 / span 2;
+}
+
+/* Quarta caixa (Game 2 WR) - ocupa 2 colunas */
 .stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card:nth-child(4),
 .stats-section:has(.stats-item:nth-child(5):last-child) .stats-item:nth-child(4) {
-    grid-column: 2 / span 2;
+    grid-column: 3 / span 2;
 }
 
+/* Quinta caixa (Game 3 WR) - ocupa 2 colunas */
 .stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card:nth-child(5),
 .stats-section:has(.stats-item:nth-child(5):last-child) .stats-item:nth-child(5) {
-    grid-column: 4 / span 2;
+    grid-column: 5 / span 2;
 }
 
 /* Layout para 2 itens (lado a lado ocupando espaço total) */
@@ -888,21 +903,32 @@ footer {
         width: 100%;
     }
 
+    /* No tablet, mantém 2 em cima e ajusta 3 embaixo */
     .stats-grid,
     .stats-section {
         grid-template-columns: repeat(2, 1fr) !important;
         gap: var(--spacing-sm);
     }
     
-    /* Remove o layout especial de 5 itens no mobile */
-    .stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card,
-    .stats-section:has(.stats-item:nth-child(5):last-child) .stats-item {
-        grid-column: span 1;
+    /* Layout para 5 itens no tablet: 2 em cima (ocupando 1 coluna cada), 3 embaixo menores */
+    .stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card:nth-child(1),
+    .stats-section:has(.stats-item:nth-child(5):last-child) .stats-item:nth-child(1) {
+        grid-column: 1 / span 1;
     }
     
+    .stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card:nth-child(2),
+    .stats-section:has(.stats-item:nth-child(5):last-child) .stats-item:nth-child(2) {
+        grid-column: 2 / span 1;
+    }
+    
+    /* Game 1, 2, 3 ficam em linha própria compartilhando espaço */
+    .stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card:nth-child(3),
+    .stats-section:has(.stats-item:nth-child(5):last-child) .stats-item:nth-child(3),
+    .stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card:nth-child(4),
+    .stats-section:has(.stats-item:nth-child(5):last-child) .stats-item:nth-child(4),
     .stats-grid:has(.stat-card:nth-child(5):last-child) .stat-card:nth-child(5),
     .stats-section:has(.stats-item:nth-child(5):last-child) .stats-item:nth-child(5) {
-        grid-column: span 2;
+        grid-column: span 1;
     }
 
     .stat-value,
