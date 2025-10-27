@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matchup Matrix</title>
+    <link rel="stylesheet" href="/mtg_tools/styles/main_style.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
+    <style>
+        .matrix-container {
+            overflow-x: auto;
+            margin: 30px 0;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 4px;
+            min-width: 600px;
+        }
+
+        .matrix-table th {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+            padding: 12px 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+
+        .matrix-table td {
+            padding: 0;
+            text-align: center;
+            border: none;
+        }
+
+        .matrix-cell {
+            padding: 16px 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 80px;
+            display: block;
+            border: 2px solid transparent;
+        }
+
+        .matrix-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Cores baseadas em Win Rate */
+        .wr-excellent {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .wr-good {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            color: white;
+        }
+
+        .wr-favorable {
+            background: linear-gradient(135deg, #6ee7b7 0%, #34d399 100%);
+            color: #064e3b;
+        }
+
+        .wr-even {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #78350f;
+        }
+
+        .wr-unfavorable {
+            background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+            color: white;
+        }
+
+        .wr-bad {
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+            color: white;
+        }
+
+        .wr-terrible {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+        }
+
+        .wr-no-data {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--color-text-muted);
+            font-style: italic;
+        }
+
+        .deck-row-label {
+            background: linear-gradient(135deg, var(--color-brown) 0%, var(--color-brown-dark) 100%);
+            padding: 12px;
+            font-weight: 700;
+            color: white;
+            border-radius: 8px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .matrix-legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 40px;
+            height: 24px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .legend-label {
+            font-size: 0.9rem;
+            color: var(--color-text-secondary);
+            font-weight: 600;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .summary-card {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .summary-label {
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .matchup-detail-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        .matchup-detail-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--color-bg-card);
+            border-radius: 18px;
+            padding: 32px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            padding: 8px;
+            font-size: 1.5rem;
+            width: auto;
+            margin: 0;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--color-text-primary);
+        }
+
+        .detail-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .detail-stat {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .detail-stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--color-accent);
+            margin-bottom: 4px;
+        }
+
+        .detail-stat-label {
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+        }
+
+        .filter-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-row label {
+            margin: 0;
+            min-width: 120px;
+        }
+
+        .filter-row select {
+            flex: 1;
+            min-width: 200px;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .matrix-table {
+                font-size: 0.85rem;
+            }
+
+            .matrix-cell {
+                padding: 12px 8px;
+                font-size: 0.9rem;
+                min-width: 60px;
+            }
+
+            .matrix-table th,
+            .deck-row-label {
+                font-size: 0.75rem;
+                padding: 8px 6px;
+            }
+
+            .stats-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="/mtg_tools/Ferramentas_MTG.html">🏠 Menu Principal</a></li>
+            <li><a href="/mtg_tools/Deck_Tracker_V3.html">📊 Deck Stats Tracker</a></li>
+            <li><a href="/mtg_tools/Calculadora_MTG.html">🧮 Calculadora de Probabilidade</a></li>
+            <li><a href="/mtg_tools/Mtgo_Results.html">🏆 MTGO Results</a></li>
+            <li><a href="/mtg_tools/Matchup_Matrix.html" class="active">📊 Matchup Matrix</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <header>
+            <h1>📊 Matchup Matrix</h1>
+            <h2>Visualização Completa de Win Rates por Matchup</h2>
+        </header>
+
+        <!-- Filtros -->
+        <div class="filter-section">
+            <div class="filter-row">
+                <label for="user-select">👤 Usuário:</label>
+                <select id="user-select">
+                    <option value="" disabled selected>Selecione seu Nome</option>
+                </select>
+            </div>
+            <div class="filter-row" style="margin-top: 12px;">
+                <label for="format-select">🎮 Formato:</label>
+                <select id="format-select" disabled>
+                    <option value="" disabled selected>Selecione o Formato</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Resumo de Estatísticas -->
+        <div id="stats-summary-section" style="display: none;">
+            <h2>📈 Resumo Geral</h2>
+            <div class="stats-summary" id="stats-summary"></div>
+        </div>
+
+        <!-- Legenda -->
+        <div id="legend-section" style="display: none;">
+            <h3>🎨 Legenda de Cores</h3>
+            <div class="matrix-legend">
+                <div class="legend-item">
+                    <div class="legend-color wr-excellent"></div>
+                    <span class="legend-label">≥70% Excelente</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color wr-good"></div>
+                    <span class="legend-label">60-69% Bom</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color wr-favorable"></div>
+                    <span class="legend-label">55-59% Favorável</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color wr-even"></div>
+                    <span class="legend-label">45-54% Equilibrado</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color wr-unfavorable"></div>
+                    <span class="legend-label">40-44% Desfavorável</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color wr-bad"></div>
+                    <span class="legend-label">30-39% Ruim</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color wr-terrible"></div>
+                    <span class="legend-label">&lt;30% Terrível</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color wr-no-data"></div>
+                    <span class="legend-label">Sem Dados</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Matriz -->
+        <div id="matrix-section" style="display: none;">
+            <h2>🎯 Matriz de Matchups</h2>
+            <div class="matrix-container">
+                <table class="matrix-table" id="matrix-table"></table>
+            </div>
+        </div>
+
+        <!-- Modal de Detalhes -->
+        <div class="matchup-detail-modal" id="detail-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="modal-title"></h3>
+                    <button class="modal-close" onclick="closeModal()">×</button>
+                </div>
+                <div id="modal-body"></div>
+            </div>
+        </div>
+
+        <div id="status" class="loading">Selecione um usuário para começar.</div>
+    </div>
+
+    <script>
+        // Configuração Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDXVYDMwvnUoCUMTlvh8egzqS06_o497y8",
+            authDomain: "mtg-tracker-ea7a2.firebaseapp.com",
+            databaseURL: "https://mtg-tracker-ea7a2-default-rtdb.firebaseio.com",
+            projectId: "mtg-tracker-ea7a2",
+            storageBucket: "mtg-tracker-ea7a2.firebasestorage.app",
+            messagingSenderId: "365839696243",
+            appId: "1:365839696243:web:72d8c6b1d4acafbc7c506",
+            measurementId: "G-029H8PTYRH"
+        };
+
+        // Variáveis Globais
+        const USERS = ['Chico', 'Capi', 'Maciel', 'Avelã', 'Gominho'];
+        const ALL_FORMATS = ['Standard', 'Pioneer', 'Modern', 'Legacy', 'Vintage', 'Commander', 'Pauper', 'Explorer', 'Alchemy', 'Brawl', 'Draft', 'Sealed', 'Outros'].sort();
+        
+        let firebaseApp = null;
+        let dbRef = null;
+        let currentUser = null;
+        let currentFormat = null;
+        let allData = {};
+        let matrixData = {};
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeFirebase();
+            populateUserSelector();
+            setupEventListeners();
+        });
+
+        function initializeFirebase() {
+            try {
+                if (!firebaseApp) {
+                    firebaseApp = firebase.initializeApp(firebaseConfig);
+                }
+                updateStatus('Conectado ao Firebase. Selecione um usuário.', 'success');
+            } catch (e) {
+                console.error("Erro ao inicializar Firebase:", e);
+                updateStatus(`Erro ao inicializar Firebase: ${e.message}`, 'error');
+            }
+        }
+
+        function populateUserSelector() {
+            const userSelect = document.getElementById('user-select');
+            userSelect.innerHTML = '<option value="" disabled selected>Selecione seu Nome</option>';
+            USERS.forEach(name => userSelect.appendChild(new Option(name, name)));
+        }
+
+        function populateFormatSelector() {
+            const formatSelect = document.getElementById('format-select');
+            formatSelect.innerHTML = '<option value="" disabled selected>Selecione o Formato</option>';
+            
+            ALL_FORMATS.forEach(format => {
+                const option = document.createElement('option');
+                option.value = format;
+                let displayText = format;
+                
+                if (allData[format] && allData[format].decks && Object.keys(allData[format].decks).length > 0) {
+                    displayText += ' (Jogado)';
+                }
+                option.textContent = displayText;
+                formatSelect.appendChild(option);
+            });
+        }
+
+        function setupEventListeners() {
+            document.getElementById('user-select').addEventListener('change', (e) => {
+                currentUser = e.target.value;
+                loadUserData();
+            });
+
+            document.getElementById('format-select').addEventListener('change', (e) => {
+                currentFormat = e.target.value;
+                processMatrixData();
+            });
+        }
+
+        function loadUserData() {
+            if (!firebaseApp || !currentUser) return;
+            
+            dbRef = firebaseApp.database().ref(`users/${currentUser}`);
+            updateStatus(`Carregando dados de ${currentUser}...`, 'loading');
+            
+            dbRef.on('value', (snapshot) => {
+                allData = snapshot.val() || {};
+                populateFormatSelector();
+                document.getElementById('format-select').disabled = false;
+                updateStatus(`Usuário: ${currentUser}. Selecione um formato.`, 'success');
+            });
+        }
+
+        function processMatrixData() {
+            if (!currentFormat || !allData[currentFormat]) {
+                updateStatus('Nenhum dado encontrado para este formato.', 'error');
+                return;
+            }
+
+            updateStatus('Processando dados da matriz...', 'loading');
+
+            const formatData = allData[currentFormat];
+            const decks = formatData.decks || {};
+            
+            matrixData = {};
+            
+            // Processa cada deck
+            Object.keys(decks).forEach(deckName => {
+                const matches = decks[deckName];
+                if (!matches || typeof matches !== 'object') return;
+                
+                if (!matrixData[deckName]) {
+                    matrixData[deckName] = {};
+                }
+                
+                // Processa cada partida
+                Object.values(matches).forEach(match => {
+                    if (!match.deckOponente) return;
+                    
+                    const opponent = match.deckOponente;
+                    
+                    if (!matrixData[deckName][opponent]) {
+                        matrixData[deckName][opponent] = {
+                            wins: 0,
+                            losses: 0,
+                            total: 0
+                        };
+                    }
+                    
+                    const g1 = match.g1Result ? match.g1Result.toLowerCase() : '';
+                    const g2 = match.g2Result ? match.g2Result.toLowerCase() : '';
+                    const g3 = match.g3Result ? match.g3Result.toLowerCase() : 'not_played';
+                    
+                    const wins = (g1 === 'win' ? 1 : 0) + (g2 === 'win' ? 1 : 0) + (g3 === 'win' ? 1 : 0);
+                    const matchWon = wins >= 2;
+                    
+                    matrixData[deckName][opponent].total++;
+                    if (matchWon) {
+                        matrixData[deckName][opponent].wins++;
+                    } else {
+                        matrixData[deckName][opponent].losses++;
+                    }
+                });
+            });
+
+            renderMatrix();
+            renderStatsSummary();
+            updateStatus(`Matriz gerada para ${currentFormat}!`, 'success');
+        }
+
+        function renderMatrix() {
+            const table = document.getElementById('matrix-table');
+            
+            const myDecks = Object.keys(matrixData);
+            if (myDecks.length === 0) {
+                table.innerHTML = '<tr><td colspan="100%" style="padding: 40px; text-align: center; color: var(--color-text-muted);">Nenhum dado de partida encontrado neste formato.</td></tr>';
+                document.getElementById('matrix-section').style.display = 'block';
+                return;
+            }
+            
+            // Coleta todos os oponentes únicos
+            const allOpponents = new Set();
+            Object.values(matrixData).forEach(deckData => {
+                Object.keys(deckData).forEach(opp => allOpponents.add(opp));
+            });
+            const opponents = Array.from(allOpponents).sort();
+            
+            // Cria header
+            let html = '<thead><tr><th>Meu Deck</th>';
+            opponents.forEach(opp => {
+                html += `<th>${opp}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            // Cria linhas
+            myDecks.forEach(myDeck => {
+                html += `<tr><td class="deck-row-label">${myDeck}</td>`;
+                
+                opponents.forEach(opp => {
+                    const data = matrixData[myDeck][opp];
+                    if (data && data.total > 0) {
+                        const winRate = (data.wins / data.total * 100).toFixed(1);
+                        const colorClass = getWinRateClass(parseFloat(winRate));
+                        html += `<td><div class="matrix-cell ${colorClass}" onclick="showMatchupDetail('${myDeck}', '${opp}')">${winRate}%<br><small>(${data.wins}-${data.losses})</small></div></td>`;
+                    } else {
+                        html += `<td><div class="matrix-cell wr-no-data">-</div></td>`;
+                    }
+                });
+                
+                html += '</tr>';
+            });
+            
+            html += '</tbody>';
+            table.innerHTML = html;
+            
+            document.getElementById('matrix-section').style.display = 'block';
+            document.getElementById('legend-section').style.display = 'block';
+        }
+
+        function getWinRateClass(winRate) {
+            if (winRate >= 70) return 'wr-excellent';
+            if (winRate >= 60) return 'wr-good';
+            if (winRate >= 55) return 'wr-favorable';
+            if (winRate >= 45) return 'wr-even';
+            if (winRate >= 40) return 'wr-unfavorable';
+            if (winRate >= 30) return 'wr-bad';
+            return 'wr-terrible';
+        }
+
+        function renderStatsSummary() {
+            const summary = document.getElementById('stats-summary');
+            
+            let totalMatches = 0;
+            let totalWins = 0;
+            let bestMatchup = { deck: '', opponent: '', winRate: 0 };
+            let worstMatchup = { deck: '', opponent: '', winRate: 100 };
+            let matchupCount = 0;
+            
+            Object.keys(matrixData).forEach(myDeck => {
+                Object.keys(matrixData[myDeck]).forEach(opp => {
+                    const data = matrixData[myDeck][opp];
+                    if (data.total > 0) {
+                        totalMatches += data.total;
+                        totalWins += data.wins;
+                        matchupCount++;
+                        
+                        const winRate = (data.wins / data.total * 100);
+                        if (winRate > bestMatchup.winRate && data.total >= 3) {
+                            bestMatchup = { deck: myDeck, opponent: opp, winRate: winRate };
+                        }
+                        if (winRate < worstMatchup.winRate && data.total >= 3) {
+                            worstMatchup = { deck: myDeck, opponent: opp, winRate: winRate };
+                        }
+                    }
+                });
+            });
+            
+            const overallWinRate = totalMatches > 0 ? ((totalWins / totalMatches) * 100).toFixed(1) : 0;
+            
+            summary.innerHTML = `
+                <div class="summary-card">
+                    <div class="summary-value">${totalMatches}</div>
+                    <div class="summary-label">Total de Partidas</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value">${overallWinRate}%</div>
+                    <div class="summary-label">Win Rate Geral</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value">${matchupCount}</div>
+                    <div class="summary-label">Matchups Diferentes</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value">${Object.keys(matrixData).length}</div>
+                    <div class="summary-label">Decks Jogados</div>
+                </div>
+            `;
+            
+            document.getElementById('stats-summary-section').style.display = 'block';
+        }
+
+        function showMatchupDetail(myDeck, opponent) {
+            const data = matrixData[myDeck][opponent];
+            if (!data || data.total === 0) return;
+            
+            const winRate = (data.wins / data.total * 100).toFixed(1);
+            const lossRate = (data.losses / data.total * 100).toFixed(1);
+            
+            document.getElementById('modal-title').textContent = `${myDeck} vs ${opponent}`;
+            
+            const modalBody = document.getElementById('modal-body');
+            modalBody.innerHTML = `
+                <div class="detail-stats">
+                    <div class="detail-stat">
+                        <div class="detail-stat-value">${winRate}%</div>
+                        <div class="detail-stat-label">Win Rate</div>
+                    </div>
+                    <div class="detail-stat">
+                        <div class="detail-stat-value">${data.total}</div>
+                        <div class="detail-stat-label">Total de Partidas</div>
+                    </div>
+                    <div class="detail-stat">
+                        <div class="detail-stat-value">${data.wins}</div>
+                        <div class="detail-stat-label">Vitórias</div>
+                    </div>
+                    <div class="detail-stat">
+                        <div class="detail-stat-value">${data.losses}</div>
+                        <div class="detail-stat-label">Derrotas</div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; padding: 16px; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                    <p style="color: var(--color-text-secondary); margin-bottom: 8px;"><strong>Análise:</strong></p>
+                    <p style="color: var(--color-text-muted);">
+                        ${getMatchupAnalysis(parseFloat(winRate), data.total)}
+                    </p>
+                </div>
+            `;
+            
+            document.getElementById('detail-modal').classList.add('active');
+        }
+
+        function getMatchupAnalysis(winRate, games) {
+            if (games < 5) {
+                return `Amostra pequena (${games} jogos). Jogue mais partidas para obter dados mais confiáveis.`;
+            }
+            
+            if (winRate >= 70) {
+                return `Matchup excelente! Esta é uma das suas melhores matchups. Continue com a estratégia atual.`;
+            } else if (winRate >= 60) {
+                return `Matchup favorável. Você tem boas chances de vitória mantendo o plano de jogo.`;
+            } else if (winRate >= 55) {
+                return `Matchup levemente favorável. Pequenas otimizações podem melhorar ainda mais.`;
+            } else if (winRate >= 45) {
+                return `Matchup equilibrada. O resultado geralmente depende de quem executa melhor.`;
+            } else if (winRate >= 40) {
+                return `Matchup levemente desfavorável. Considere ajustes no sideboard ou no plano de jogo.`;
+            } else if (winRate >= 30) {
+                return `Matchup difícil. Revise sua estratégia e sideboard para esta matchup.`;
+            } else {
+                return `Matchup muito difícil. Considere mudanças significativas no deck ou sideboard.`;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('detail-modal').classList.remove('active');
+        }
+
+        // Fecha modal clicando fora
+        document.getElementById('detail-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'detail-modal') {
+                closeModal();
+            }
+        });
+
+        function updateStatus(message, type) {
+            const statusElement = document.getElementById('status');
+            statusElement.textContent = message;
+            statusElement.className = type;
+            statusElement.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
