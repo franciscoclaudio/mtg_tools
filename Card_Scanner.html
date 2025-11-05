@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Scanner - MTG Tools</title>
+    <link rel="stylesheet" href="/mtg_tools/styles/main_style.css">
+    
+    <!-- Tesseract.js para OCR no navegador -->
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js'></script>
+    
+    <style>
+        /* Estilos específicos do Scanner */
+        .scanner-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .upload-area {
+            background: rgba(0, 0, 0, 0.2);
+            border: 3px dashed var(--color-accent);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .upload-area:hover {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--color-accent-light);
+            transform: scale(1.02);
+        }
+
+        .upload-area.dragover {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--color-accent-light);
+            transform: scale(1.05);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--color-accent);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .preview-container {
+            display: none;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .preview-container.active {
+            display: block;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: var(--radius-md);
+            margin: 0 auto;
+            display: block;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .progress-container {
+            display: none;
+            margin: var(--spacing-lg) 0;
+        }
+
+        .progress-container.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .progress-bar-wrapper {
+            background: rgba(255, 255, 255, 0.1);
+            height: 24px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
+            border-radius: 12px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+            margin-top: var(--spacing-sm);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+        }
+
+        .card-item {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            transition: all var(--transition-base);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .card-item:hover {
+            transform: translateY(-4px);
+            border-color: var(--color-accent);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .card-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            line-height: 1.3;
+        }
+
+        .card-rarity {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .rarity-common {
+            background: rgba(156, 163, 175, 0.3);
+            color: #d1d5db;
+        }
+
+        .rarity-uncommon {
+            background: rgba(192, 192, 192, 0.3);
+            color: #e5e7eb;
+        }
+
+        .rarity-rare {
+            background: rgba(251, 191, 36, 0.3);
+            color: #fcd34d;
+        }
+
+        .rarity-mythic {
+            background: rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+
+        .card-details {
+            font-size: 0.9rem;
+            color: var(--color-text-secondary);
+            line-height: 1.6;
+        }
+
+        .card-details div {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .card-details strong {
+            color: var(--color-text-primary);
+        }
+
+        .card-link {
+            display: inline-block;
+            margin-top: var(--spacing-md);
+            padding: 8px 16px;
+            background: var(--color-accent);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all var(--transition-base);
+        }
+
+        .card-link:hover {
+            background: var(--color-accent-dark);
+            transform: translateX(2px);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+        }
+
+        .action-buttons button {
+            flex: 1;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--color-brown) 0%, var(--color-brown-dark) 100%);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-xl);
+            color: var(--color-text-muted);
+        }
+
+        .camera-button {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .upload-icon {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="/mtg_tools/Ferramentas_MTG.html">🏠 Menu Principal</a></li>
+            <li><a href="/mtg_tools/Deck_Tracker_V3.html">📊 Deck Stats Tracker</a></li>
+            <li><a href="/mtg_tools/Calculadora_MTG.html">🧮 Calculadora de Probabilidade</a></li>
+            <li><a href="/mtg_tools/Mtgo_Results.html">🏆 MTGO Results</a></li>
+            <li><a href="/mtg_tools/Matchup_Matrix.html">📈 Matchup Matrix</a></li>
+            <li><a href="/mtg_tools/Card_Scanner.html" class="active">🔍 Card Scanner</a></li>
+        </ul>
+    </nav>
+
+    <div class="container scanner-container">
+        <header>
+            <h1>🔍 Card Scanner</h1>
+            <h2>Identificação de Cartas MTG por Imagem</h2>
+        </header>
+
+        <!-- Área de Upload -->
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📸</div>
+            <h3>Clique ou arraste uma imagem</h3>
+            <p style="color: var(--color-text-muted); margin-top: var(--spacing-sm);">
+                Tire uma foto das suas cartas ou selecione uma imagem
+            </p>
+            <input type="file" id="fileInput" class="file-input" accept="image/*" capture="environment">
+            <button type="button" class="camera-button" onclick="document.getElementById('fileInput').click()">
+                📷 Tirar Foto / Selecionar Imagem
+            </button>
+        </div>
+
+        <!-- Preview da Imagem -->
+        <div class="preview-container" id="previewContainer">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
+                <h3 style="margin: 0;">📷 Imagem Selecionada</h3>
+                <button type="button" onclick="clearImage()" style="width: auto; padding: 8px 16px; font-size: 0.9rem;">
+                    ❌ Remover
+                </button>
+            </div>
+            <img id="previewImage" class="preview-image" alt="Preview da imagem">
+            
+            <div class="action-buttons">
+                <button type="button" id="scanButton" onclick="scanImage()">
+                    🔍 Escanear Cartas
+                </button>
+            </div>
+        </div>
+
+        <!-- Barra de Progresso -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar-wrapper">
+                <div class="progress-bar-fill" id="progressBar">0%</div>
+            </div>
+            <div class="progress-text" id="progressText">Iniciando...</div>
+        </div>
+
+        <!-- Status -->
+        <div id="status" class="loading" style="display: none;">Pronto para escanear</div>
+
+        <!-- Resultados -->
+        <div id="resultsSection" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
+                <h2 style="margin: 0;">🎴 Cartas Encontradas (<span id="cardCount">0</span>)</h2>
+                <button type="button" onclick="downloadDecklist()" id="downloadButton" style="width: auto; padding: 12px 24px;">
+                    💾 Baixar Decklist
+                </button>
+            </div>
+            <div class="cards-grid" id="cardsGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        let tesseractWorker = null;
+        let detectedCards = [];
+        let selectedImage = null;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            setupUploadArea();
+            setupFileInput();
+        });
+
+        // Configurar área de upload com drag & drop
+        function setupUploadArea() {
+            const uploadArea = document.getElementById('uploadArea');
+            
+            uploadArea.addEventListener('click', () => {
+                document.getElementById('fileInput').click();
+            });
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    handleImageSelect(file);
+                }
+            });
+        }
+
+        // Configurar input de arquivo
+        function setupFileInput() {
+            const fileInput = document.getElementById('fileInput');
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    handleImageSelect(file);
+                }
+            });
+        }
+
+        // Lidar com seleção de imagem
+        function handleImageSelect(file) {
+            if (!file.type.startsWith('image/')) {
+                showStatus('Por favor, selecione uma imagem válida', 'error');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                showStatus('Imagem muito grande. Máximo: 10MB', 'error');
+                return;
+            }
+
+            selectedImage = file;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('previewImage').src = e.target.result;
+                document.getElementById('previewContainer').classList.add('active');
+                document.getElementById('uploadArea').style.display = 'none';
+                document.getElementById('resultsSection').style.display = 'none';
+                showStatus('Imagem carregada! Clique em "Escanear" para identificar as cartas.', 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Limpar imagem
+        function clearImage() {
+            selectedImage = null;
+            document.getElementById('previewContainer').classList.remove('active');
+            document.getElementById('uploadArea').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('progressContainer').classList.remove('active');
+            document.getElementById('fileInput').value = '';
+            detectedCards = [];
+            hideStatus();
+        }
+
+        // Escanear imagem
+        async function scanImage() {
+            if (!selectedImage) {
+                showStatus('Nenhuma imagem selecionada', 'error');
+                return;
+            }
+
+            try {
+                document.getElementById('scanButton').disabled = true;
+                showProgress('Inicializando OCR...', 0);
+
+                // Inicializar Tesseract
+                const worker = await Tesseract.createWorker({
+                    logger: (m) => {
+                        if (m.status === 'recognizing text') {
+                            const progress = Math.round(m.progress * 100);
+                            showProgress(`Extraindo texto da imagem... ${progress}%`, progress);
+                        }
+                    }
+                });
+
+                await worker.loadLanguage('eng');
+                await worker.initialize('eng');
+
+                // Extrair texto
+                showProgress('Processando imagem...', 50);
+                const { data: { text } } = await worker.recognize(selectedImage);
+                await worker.terminate();
+
+                if (!text || text.trim().length < 3) {
+                    showStatus('Não foi possível extrair texto da imagem. Tente uma foto mais nítida.', 'error');
+                    hideProgress();
+                    document.getElementById('scanButton').disabled = false;
+                    return;
+                }
+
+                // Processar nomes de cartas
+                showProgress('Identificando cartas...', 70);
+                const cardNames = parseCardNames(text);
+
+                if (cardNames.length === 0) {
+                    showStatus('Nenhum nome de carta encontrado. Certifique-se de que os nomes estão visíveis.', 'error');
+                    hideProgress();
+                    document.getElementById('scanButton').disabled = false;
+                    return;
+                }
+
+                // Buscar cartas no Scryfall
+                showProgress(`Buscando ${cardNames.length} cartas no Scryfall...`, 80);
+                detectedCards = [];
+
+                for (let i = 0; i < cardNames.length; i++) {
+                    const cardData = await searchCardOnScryfall(cardNames[i]);
+                    if (cardData) {
+                        detectedCards.push(cardData);
+                    }
+                    showProgress(
+                        `Buscando cartas... (${i + 1}/${cardNames.length})`, 
+                        80 + (i / cardNames.length) * 20
+                    );
+                }
+
+                hideProgress();
+
+                if (detectedCards.length > 0) {
+                    displayResults();
+                    showStatus(`✅ ${detectedCards.length} carta(s) identificada(s) com sucesso!`, 'success');
+                } else {
+                    showStatus('Nenhuma carta foi encontrada no Scryfall. Tente melhorar a qualidade da imagem.', 'error');
+                }
+
+            } catch (error) {
+                console.error('Erro ao escanear:', error);
+                showStatus(`Erro ao processar imagem: ${error.message}`, 'error');
+                hideProgress();
+            } finally {
+                document.getElementById('scanButton').disabled = false;
+            }
+        }
+
+        // Parsear nomes de cartas do texto
+        function parseCardNames(text) {
+            const lines = text.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 2 && line.length < 50)
+                .filter(line => /^[A-Z]/.test(line))
+                .filter(line => !/^\d+$/.test(line));
+
+            return [...new Set(lines)].slice(0, 10);
+        }
+
+        // Buscar carta no Scryfall
+        async function searchCardOnScryfall(cardName) {
+            try {
+                const response = await fetch(
+                    `https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`
+                );
+                
+                if (!response.ok) return null;
+                
+                const data = await response.json();
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                return {
+                    name: data.name,
+                    set: data.set_name,
+                    type: data.type_line,
+                    manaCost: data.mana_cost || '',
+                    rarity: data.rarity,
+                    text: data.oracle_text || '',
+                    image: data.image_uris?.normal || data.image_uris?.small,
+                    scryfallUrl: data.scryfall_uri,
+                    colors: data.colors || []
+                };
+            } catch (error) {
+                console.error(`Erro ao buscar carta ${cardName}:`, error);
+                return null;
+            }
+        }
+
+        // Exibir resultados
+        function displayResults() {
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = '';
+            
+            document.getElementById('cardCount').textContent = detectedCards.length;
+
+            detectedCards.forEach(card => {
+                const cardElement = createCardElement(card);
+                grid.appendChild(cardElement);
+            });
+
+            document.getElementById('resultsSection').style.display = 'block';
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Criar elemento de carta
+        function createCardElement(card) {
+            const div = document.createElement('div');
+            div.className = 'card-item';
+            
+            const rarityClass = `rarity-${card.rarity}`;
+            
+            div.innerHTML = `
+                <div class="card-header">
+                    <div class="card-name">${card.name}</div>
+                    <span class="card-rarity ${rarityClass}">${card.rarity}</span>
+                </div>
+                <div class="card-details">
+                    <div><strong>Tipo:</strong> ${card.type}</div>
+                    <div><strong>Edição:</strong> ${card.set}</div>
+                    ${card.manaCost ? `<div><strong>Custo:</strong> ${card.manaCost}</div>` : ''}
+                    ${card.text ? `<div style="margin-top: 8px; font-size: 0.85rem; line-height: 1.5;">${card.text.substring(0, 150)}${card.text.length > 150 ? '...' : ''}</div>` : ''}
+                </div>
+                <a href="${card.scryfallUrl}" target="_blank" class="card-link">
+                    Ver no Scryfall →
+                </a>
+            `;
+            
+            return div;
+        }
+
+        // Baixar decklist
+        function downloadDecklist() {
+            if (detectedCards.length === 0) {
+                showStatus('Nenhuma carta para gerar decklist', 'error');
+                return;
+            }
+
+            const cardCounts = {};
+            detectedCards.forEach(card => {
+                cardCounts[card.name] = (cardCounts[card.name] || 0) + 1;
+            });
+
+            let content = 'MTG Decklist - Card Scanner\n';
+            content += '='.repeat(50) + '\n\n';
+            
+            Object.entries(cardCounts)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .forEach(([name, count]) => {
+                    content += `${count} ${name}\n`;
+                });
+            
+            content += `\nTotal: ${detectedCards.length} cartas\n`;
+            content += `Gerado em: ${new Date().toLocaleString('pt-BR')}\n`;
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mtg_decklist.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showStatus('✅ Decklist baixado com sucesso!', 'success');
+        }
+
+        // Mostrar progresso
+        function showProgress(text, percent) {
+            const container = document.getElementById('progressContainer');
+            const bar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            
+            container.classList.add('active');
+            bar.style.width = percent + '%';
+            bar.textContent = Math.round(percent) + '%';
+            progressText.textContent = text;
+        }
+
+        // Esconder progresso
+        function hideProgress() {
+            document.getElementById('progressContainer').classList.remove('active');
+        }
+
+        // Mostrar status
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = type;
+            statusDiv.style.display = 'block';
+        }
+
+        // Esconder status
+        function hideStatus() {
+            document.getElementById('status').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
