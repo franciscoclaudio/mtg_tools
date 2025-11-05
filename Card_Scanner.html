@@ -110,101 +110,32 @@
             margin-top: var(--spacing-sm);
         }
 
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: var(--spacing-md);
-            margin-top: var(--spacing-lg);
+        .results-section {
+            display: none;
+            margin-top: var(--spacing-xl);
         }
 
-        .card-item {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-lg);
-            transition: all var(--transition-base);
+        .results-section.active {
+            display: block;
             animation: slideIn 0.3s ease-out;
         }
 
-        .card-item:hover {
-            transform: translateY(-4px);
-            border-color: var(--color-accent);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: var(--spacing-md);
-        }
-
-        .card-name {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--color-text-primary);
-            line-height: 1.3;
-        }
-
-        .card-rarity {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .rarity-common {
-            background: rgba(156, 163, 175, 0.3);
-            color: #d1d5db;
-        }
-
-        .rarity-uncommon {
-            background: rgba(192, 192, 192, 0.3);
-            color: #e5e7eb;
-        }
-
-        .rarity-rare {
-            background: rgba(251, 191, 36, 0.3);
-            color: #fcd34d;
-        }
-
-        .rarity-mythic {
-            background: rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-        }
-
-        .card-details {
-            font-size: 0.9rem;
-            color: var(--color-text-secondary);
+        .decklist-output {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin: var(--spacing-lg) 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
             line-height: 1.6;
         }
 
-        .card-details div {
-            margin-bottom: var(--spacing-sm);
-        }
-
-        .card-details strong {
+        .decklist-output h4 {
+            margin: 0 0 var(--spacing-md) 0;
             color: var(--color-text-primary);
-        }
-
-        .card-link {
-            display: inline-block;
-            margin-top: var(--spacing-md);
-            padding: 8px 16px;
-            background: var(--color-accent);
-            color: white;
-            text-decoration: none;
-            border-radius: var(--radius-sm);
-            font-size: 0.85rem;
-            font-weight: 600;
-            transition: all var(--transition-base);
-        }
-
-        .card-link:hover {
-            background: var(--color-accent-dark);
-            transform: translateX(2px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: var(--spacing-sm);
         }
 
         .action-buttons {
@@ -234,17 +165,46 @@
             margin-top: var(--spacing-md);
         }
 
-        @media (max-width: 768px) {
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
+        .card-count {
+            display: inline-block;
+            background: var(--color-accent);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: var(--spacing-sm);
+        }
 
+        @media (max-width: 768px) {
             .action-buttons {
                 flex-direction: column;
             }
 
             .upload-icon {
                 font-size: 3rem;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
     </style>
@@ -309,19 +269,26 @@
         <div id="status" class="loading" style="display: none;">Pronto para escanear</div>
 
         <!-- Resultados -->
-        <div id="resultsSection" style="display: none;">
+        <div class="results-section" id="resultsSection">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
-                <h2 style="margin: 0;">🎴 Cartas Encontradas (<span id="cardCount">0</span>)</h2>
+                <h2 style="margin: 0;">
+                    🎴 Cartas Encontradas 
+                    <span class="card-count" id="cardCount">0</span>
+                </h2>
                 <button type="button" onclick="downloadDecklist()" id="downloadButton" style="width: auto; padding: 12px 24px;">
                     💾 Baixar Decklist
                 </button>
             </div>
-            <div class="cards-grid" id="cardsGrid"></div>
+            
+            <!-- Decklist Formatada -->
+            <div class="decklist-output" id="decklistOutput">
+                <h4>📋 Decklist Formatada:</h4>
+                <div id="decklistContent">Nenhuma carta identificada ainda.</div>
+            </div>
         </div>
     </div>
 
     <script>
-        let tesseractWorker = null;
         let detectedCards = [];
         let selectedImage = null;
 
@@ -389,7 +356,7 @@
                 document.getElementById('previewImage').src = e.target.result;
                 document.getElementById('previewContainer').classList.add('active');
                 document.getElementById('uploadArea').style.display = 'none';
-                document.getElementById('resultsSection').style.display = 'none';
+                document.getElementById('resultsSection').classList.remove('active');
                 showStatus('Imagem carregada! Clique em "Escanear" para identificar as cartas.', 'success');
             };
             reader.readAsDataURL(file);
@@ -400,7 +367,7 @@
             selectedImage = null;
             document.getElementById('previewContainer').classList.remove('active');
             document.getElementById('uploadArea').style.display = 'block';
-            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('resultsSection').classList.remove('active');
             document.getElementById('progressContainer').classList.remove('active');
             document.getElementById('fileInput').value = '';
             detectedCards = [];
@@ -431,10 +398,18 @@
                 await worker.loadLanguage('eng');
                 await worker.initialize('eng');
 
+                // Configurar OCR para melhor detecção de nomes de cartas
+                await worker.setParameters({
+                    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ',
+                    tessedit_pageseg_mode: '6', // Uniform block of text
+                });
+
                 // Extrair texto
                 showProgress('Processando imagem...', 50);
                 const { data: { text } } = await worker.recognize(selectedImage);
                 await worker.terminate();
+
+                console.log('Texto extraído:', text);
 
                 if (!text || text.trim().length < 3) {
                     showStatus('Não foi possível extrair texto da imagem. Tente uma foto mais nítida.', 'error');
@@ -454,12 +429,15 @@
                     return;
                 }
 
+                console.log('Nomes encontrados:', cardNames);
+
                 // Buscar cartas no Scryfall
                 showProgress(`Buscando ${cardNames.length} cartas no Scryfall...`, 80);
                 detectedCards = [];
 
                 for (let i = 0; i < cardNames.length; i++) {
-                    const cardData = await searchCardOnScryfall(cardNames[i]);
+                    const cardName = cardNames[i];
+                    const cardData = await searchCardOnScryfall(cardName);
                     if (cardData) {
                         detectedCards.push(cardData);
                     }
@@ -489,84 +467,113 @@
 
         // Parsear nomes de cartas do texto
         function parseCardNames(text) {
+            // Divide o texto em linhas e filtra
             const lines = text.split('\n')
                 .map(line => line.trim())
-                .filter(line => line.length > 2 && line.length < 50)
-                .filter(line => /^[A-Z]/.test(line))
-                .filter(line => !/^\d+$/.test(line));
+                .filter(line => line.length > 2)
+                .filter(line => line.length < 50)
+                .filter(line => /^[A-Z][a-zA-Z\s]+$/.test(line)) // Começa com maiúscula e só tem letras
+                .filter(line => !/^(THE|AND|OR|WITH|FOR|FROM|THAT|THIS|HAVE|WITHOUT)$/i.test(line)) // Remove palavras comuns
+                .filter(line => !/\d/.test(line)); // Remove linhas com números
 
-            return [...new Set(lines)].slice(0, 10);
+            // Conta ocorrências para determinar quantidades
+            const cardCounts = {};
+            lines.forEach(line => {
+                const cleanName = line.replace(/\s+/g, ' ').trim();
+                if (cleanName) {
+                    cardCounts[cleanName] = (cardCounts[cleanName] || 0) + 1;
+                }
+            });
+
+            // Converte para array e limita a 10 cartas
+            return Object.entries(cardCounts)
+                .sort(([,a], [,b]) => b - a) // Ordena por frequência
+                .slice(0, 10)
+                .flatMap(([name, count]) => Array(count).fill(name));
         }
 
         // Buscar carta no Scryfall
         async function searchCardOnScryfall(cardName) {
             try {
-                const response = await fetch(
+                // Primeiro tenta busca fuzzy
+                let response = await fetch(
                     `https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`
                 );
                 
-                if (!response.ok) return null;
+                if (!response.ok) {
+                    // Se fuzzy falhar, tenta busca normal
+                    response = await fetch(
+                        `https://api.scryfall.com/cards/search?q=${encodeURIComponent(cardName)}`
+                    );
+                    
+                    if (!response.ok) return null;
+                    
+                    const searchData = await response.json();
+                    if (searchData.data && searchData.data.length > 0) {
+                        return formatCardData(searchData.data[0]);
+                    }
+                    return null;
+                }
                 
                 const data = await response.json();
-                await new Promise(resolve => setTimeout(resolve, 100));
+                await new Promise(resolve => setTimeout(resolve, 100)); // Rate limiting
                 
-                return {
-                    name: data.name,
-                    set: data.set_name,
-                    type: data.type_line,
-                    manaCost: data.mana_cost || '',
-                    rarity: data.rarity,
-                    text: data.oracle_text || '',
-                    image: data.image_uris?.normal || data.image_uris?.small,
-                    scryfallUrl: data.scryfall_uri,
-                    colors: data.colors || []
-                };
+                return formatCardData(data);
+                
             } catch (error) {
                 console.error(`Erro ao buscar carta ${cardName}:`, error);
                 return null;
             }
         }
 
-        // Exibir resultados
-        function displayResults() {
-            const grid = document.getElementById('cardsGrid');
-            grid.innerHTML = '';
-            
-            document.getElementById('cardCount').textContent = detectedCards.length;
-
-            detectedCards.forEach(card => {
-                const cardElement = createCardElement(card);
-                grid.appendChild(cardElement);
-            });
-
-            document.getElementById('resultsSection').style.display = 'block';
-            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Formatar dados da carta
+        function formatCardData(data) {
+            return {
+                name: data.name,
+                set: data.set_name,
+                type: data.type_line,
+                manaCost: data.mana_cost || '',
+                rarity: data.rarity,
+                text: data.oracle_text || '',
+                image: data.image_uris?.normal || data.image_uris?.small,
+                scryfallUrl: data.scryfall_uri,
+                colors: data.colors || []
+            };
         }
 
-        // Criar elemento de carta
-        function createCardElement(card) {
-            const div = document.createElement('div');
-            div.className = 'card-item';
+        // Exibir resultados
+        function displayResults() {
+            const cardCount = document.getElementById('cardCount');
+            const decklistContent = document.getElementById('decklistContent');
             
-            const rarityClass = `rarity-${card.rarity}`;
+            // Contar cartas únicas
+            const cardCounts = {};
+            detectedCards.forEach(card => {
+                cardCounts[card.name] = (cardCounts[card.name] || 0) + 1;
+            });
+
+            // Ordenar por nome
+            const sortedCards = Object.entries(cardCounts)
+                .sort(([a], [b]) => a.localeCompare(b));
+
+            // Gerar decklist formatada
+            let decklistText = '';
+            sortedCards.forEach(([name, count]) => {
+                decklistText += `${count} ${name}\n`;
+            });
+
+            decklistText += `\nTotal: ${detectedCards.length} cards`;
+
+            // Atualizar UI
+            cardCount.textContent = detectedCards.length;
+            decklistContent.textContent = decklistText;
+            document.getElementById('resultsSection').classList.add('active');
             
-            div.innerHTML = `
-                <div class="card-header">
-                    <div class="card-name">${card.name}</div>
-                    <span class="card-rarity ${rarityClass}">${card.rarity}</span>
-                </div>
-                <div class="card-details">
-                    <div><strong>Tipo:</strong> ${card.type}</div>
-                    <div><strong>Edição:</strong> ${card.set}</div>
-                    ${card.manaCost ? `<div><strong>Custo:</strong> ${card.manaCost}</div>` : ''}
-                    ${card.text ? `<div style="margin-top: 8px; font-size: 0.85rem; line-height: 1.5;">${card.text.substring(0, 150)}${card.text.length > 150 ? '...' : ''}</div>` : ''}
-                </div>
-                <a href="${card.scryfallUrl}" target="_blank" class="card-link">
-                    Ver no Scryfall →
-                </a>
-            `;
-            
-            return div;
+            // Scroll para resultados
+            document.getElementById('resultsSection').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
         }
 
         // Baixar decklist
@@ -590,8 +597,8 @@
                     content += `${count} ${name}\n`;
                 });
             
-            content += `\nTotal: ${detectedCards.length} cartas\n`;
-            content += `Gerado em: ${new Date().toLocaleString('pt-BR')}\n`;
+            content += `\nTotal: ${detectedCards.length} cards\n`;
+            content += `Generated: ${new Date().toLocaleString('en-US')}\n`;
 
             const blob = new Blob([content], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
@@ -601,7 +608,7 @@
             a.click();
             URL.revokeObjectURL(url);
 
-            showStatus('✅ Decklist baixado com sucesso!', 'success');
+            showStatus('✅ Decklist downloaded successfully!', 'success');
         }
 
         // Mostrar progresso
@@ -627,6 +634,13 @@
             statusDiv.textContent = message;
             statusDiv.className = type;
             statusDiv.style.display = 'block';
+            
+            // Auto-hide após 5 segundos
+            setTimeout(() => {
+                if (statusDiv.textContent === message) {
+                    hideStatus();
+                }
+            }, 5000);
         }
 
         // Esconder status
