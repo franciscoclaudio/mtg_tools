@@ -400,8 +400,8 @@
 
                 // Configurar OCR para melhor detecção de nomes de cartas
                 await worker.setParameters({
-                    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ',
-                    tessedit_pageseg_mode: '6', // Uniform block of text
+                    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ',
+                    tessedit_pageseg_mode: '6',
                 });
 
                 // Extrair texto
@@ -465,60 +465,118 @@
             }
         }
 
-        // Parsear nomes de cartas do texto
+        // Parsear nomes de cartas do texto - ALGORITMO OTIMIZADO
         function parseCardNames(text) {
-            // Divide o texto em linhas e filtra
             const lines = text.split('\n')
                 .map(line => line.trim())
                 .filter(line => line.length > 2)
                 .filter(line => line.length < 50)
-                .filter(line => /^[A-Z][a-zA-Z\s]+$/.test(line)) // Começa com maiúscula e só tem letras
-                .filter(line => !/^(THE|AND|OR|WITH|FOR|FROM|THAT|THIS|HAVE|WITHOUT)$/i.test(line)) // Remove palavras comuns
-                .filter(line => !/\d/.test(line)); // Remove linhas com números
+                .filter(line => {
+                    // Filtra linhas que parecem ser nomes de cartas
+                    const words = line.split(' ');
+                    const hasMultipleWords = words.length >= 2;
+                    const hasUpperCase = /[A-Z]/.test(line);
+                    const isLikelyCardName = words.some(word => 
+                        word.length >= 3 && /^[A-Z][a-z]+$/.test(word)
+                    );
+                    
+                    return hasMultipleWords && hasUpperCase && isLikelyCardName;
+                })
+                .filter(line => {
+                    // Remove linhas que contêm palavras comuns de texto de carta
+                    const commonCardText = [
+                        'creature', 'enchantment', 'sorcery', 'instant', 'artifact',
+                        'planeswalker', 'land', 'token', 'counter', 'damage',
+                        'destroy', 'exile', 'graveyard', 'hand', 'library',
+                        'battlefield', 'mana', 'cost', 'tap', 'untap',
+                        'attack', 'block', 'life', 'counter', 'draw'
+                    ];
+                    const lowerLine = line.toLowerCase();
+                    return !commonCardText.some(word => lowerLine.includes(word));
+                });
+
+            console.log('Linhas filtradas:', lines);
 
             // Conta ocorrências para determinar quantidades
             const cardCounts = {};
             lines.forEach(line => {
                 const cleanName = line.replace(/\s+/g, ' ').trim();
-                if (cleanName) {
+                if (cleanName && cleanName.length > 2) {
                     cardCounts[cleanName] = (cardCounts[cleanName] || 0) + 1;
                 }
             });
 
-            // Converte para array e limita a 10 cartas
-            return Object.entries(cardCounts)
-                .sort(([,a], [,b]) => b - a) // Ordena por frequência
-                .slice(0, 10)
-                .flatMap(([name, count]) => Array(count).fill(name));
+            console.log('Contagem de cartas:', cardCounts);
+
+            // Converte para array expandindo as quantidades
+            const expandedCards = [];
+            Object.entries(cardCounts).forEach(([name, count]) => {
+                for (let i = 0; i < count; i++) {
+                    expandedCards.push(name);
+                }
+            });
+
+            return expandedCards.slice(0, 20); // Limita a 20 cartas
         }
 
-        // Buscar carta no Scryfall
+        // Buscar carta no Scryfall - OTIMIZADO
         async function searchCardOnScryfall(cardName) {
             try {
-                // Primeiro tenta busca fuzzy
+                // Limpa o nome da carta
+                const cleanName = cardName.replace(/\s+/g, ' ').trim();
+                
+                // Tenta busca fuzzy primeiro (mais permissiva)
                 let response = await fetch(
-                    `https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`
+                    `https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cleanName)}`
                 );
                 
-                if (!response.ok) {
-                    // Se fuzzy falhar, tenta busca normal
+                if (response.ok) {
+                    const data = await response.json();
+                    await new Promise(resolve => setTimeout(resolve, 50)); // Rate limiting
+                    return formatCardData(data);
+                }
+
+                // Se fuzzy falhar, tenta buscar por palavras-chave
+                const searchTerms = cleanName.split(' ').filter(term => term.length > 2);
+                if (searchTerms.length > 0) {
+                    // Tenta com todas as palavras
+                    const searchQuery = searchTerms.join('+');
                     response = await fetch(
-                        `https://api.scryfall.com/cards/search?q=${encodeURIComponent(cardName)}`
+                        `https://api.scryfall.com/cards/search?q=${encodeURIComponent(searchQuery)}&order=released&unique=cards`
                     );
                     
-                    if (!response.ok) return null;
-                    
-                    const searchData = await response.json();
-                    if (searchData.data && searchData.data.length > 0) {
-                        return formatCardData(searchData.data[0]);
+                    if (response.ok) {
+                        const searchData = await response.json();
+                        if (searchData.data && searchData.data.length > 0) {
+                            await new Promise(resolve => setTimeout(resolve, 50));
+                            return formatCardData(searchData.data[0]);
+                        }
                     }
-                    return null;
+
+                    // Tenta com a primeira palavra (para casos como "Psychic Frog")
+                    if (searchTerms.length > 1) {
+                        response = await fetch(
+                            `https://api.scryfall.com/cards/search?q=${encodeURIComponent(searchTerms[0])}&order=released&unique=cards`
+                        );
+                        
+                        if (response.ok) {
+                            const searchData = await response.json();
+                            if (searchData.data && searchData.data.length > 0) {
+                                // Filtra resultados que contenham o nome completo
+                                const matchingCard = searchData.data.find(card => 
+                                    card.name.toLowerCase().includes(cleanName.toLowerCase()) ||
+                                    cleanName.toLowerCase().includes(card.name.toLowerCase().split(' ')[0])
+                                );
+                                if (matchingCard) {
+                                    await new Promise(resolve => setTimeout(resolve, 50));
+                                    return formatCardData(matchingCard);
+                                }
+                            }
+                        }
+                    }
                 }
-                
-                const data = await response.json();
-                await new Promise(resolve => setTimeout(resolve, 100)); // Rate limiting
-                
-                return formatCardData(data);
+
+                return null;
                 
             } catch (error) {
                 console.error(`Erro ao buscar carta ${cardName}:`, error);
@@ -552,11 +610,11 @@
                 cardCounts[card.name] = (cardCounts[card.name] || 0) + 1;
             });
 
-            // Ordenar por nome
+            // Ordenar por nome (alfabeticamente)
             const sortedCards = Object.entries(cardCounts)
                 .sort(([a], [b]) => a.localeCompare(b));
 
-            // Gerar decklist formatada
+            // Gerar decklist formatada em inglês
             let decklistText = '';
             sortedCards.forEach(([name, count]) => {
                 decklistText += `${count} ${name}\n`;
@@ -646,6 +704,20 @@
         // Esconder status
         function hideStatus() {
             document.getElementById('status').style.display = 'none';
+        }
+
+        // Função para teste direto com as cartas conhecidas
+        function testWithKnownCards() {
+            detectedCards = [
+                { name: "Psychic Frog" },
+                { name: "Psychic Frog" },
+                { name: "Psychic Frog" },
+                { name: "Psychic Frog" },
+                { name: "Orcish Bowmasters" },
+                { name: "Orcish Bowmasters" }
+            ];
+            displayResults();
+            showStatus('✅ Cartas de teste carregadas!', 'success');
         }
     </script>
 </body>
