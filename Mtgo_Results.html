@@ -151,29 +151,71 @@
         }
     }
 
+    // Lista de proxies CORS públicos, tentados em ordem até um funcionar.
+    // O allorigins.win sozinho é notoriamente instável (falha ~50% das vezes),
+    // então agora tentamos alternativas automaticamente antes de desistir.
+    const CORS_PROXIES = [
+        (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+        (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+        (url) => `https://thingproxy.freeboard.io/fetch/${url}`
+    ];
+
+    async function fetchWithProxyFallback(targetUrl) {
+        let lastError = null;
+
+        for (let i = 0; i < CORS_PROXIES.length; i++) {
+            const proxyUrl = CORS_PROXIES[i](targetUrl);
+            try {
+                const response = await fetch(proxyUrl, { cache: 'no-store' });
+
+                if (!response.ok) {
+                    lastError = new Error(`Proxy retornou status ${response.status}`);
+                    continue;
+                }
+
+                const html = await response.text();
+
+                // Detecta respostas vazias, páginas de bloqueio/challenge do
+                // Cloudflare, ou payloads do proxy que não são HTML de verdade.
+                if (!html || html.length < 500) {
+                    lastError = new Error('Resposta vazia ou muito curta do proxy');
+                    continue;
+                }
+                if (/attention required|checking your browser|cf-browser-verification/i.test(html)) {
+                    lastError = new Error('Bloqueado por proteção anti-bot (Cloudflare)');
+                    continue;
+                }
+                if (!/mtggoldfish/i.test(html)) {
+                    lastError = new Error('Conteúdo retornado não parece ser do MTGGoldfish');
+                    continue;
+                }
+
+                return html; // sucesso
+            } catch (err) {
+                lastError = err;
+                continue;
+            }
+        }
+
+        throw lastError || new Error('Todos os proxies falharam');
+    }
+
     async function paginateAndFetch(username, page) {
         showStatus(`Buscando dados da página ${page}...`, 'loading');
 
         const url = `https://www.mtggoldfish.com/player/${username}${page > 1 ? `?page=${page}` : ''}`;
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-        
+
         try {
-            const response = await fetch(proxyUrl);
-            
-            if (!response.ok) {
-                if (page === 1) {
-                    throw new Error('Jogador não encontrado');
-                }
-                console.log(`Paginação concluída ou erro na página ${page}. Status: ${response.status}`);
-                return; 
-            }
-            
-            const html = await response.text();
+            const html = await fetchWithProxyFallback(url);
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
             const rows = doc.querySelectorAll('table tbody tr');
 
             if (rows.length === 0) {
+                if (page === 1) {
+                    throw new Error('Jogador não encontrado');
+                }
                 console.log(`Nenhum resultado encontrado na página ${page}. Parando paginação.`);
                 return;
             }
