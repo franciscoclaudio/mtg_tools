@@ -292,6 +292,9 @@
             if (!firebaseApp) {
                 firebaseApp = firebase.initializeApp(config);
             }
+
+            // Liga o listener em tempo real com os decks de TODOS os usuários
+            attachGlobalUsersListener();
             
             statusElement.textContent = 'Conectado ao Firebase. Selecione um usuário.';
             statusElement.className = 'success';
@@ -302,6 +305,31 @@
         }
     }
     
+    // Dados de TODOS os usuários, mantidos atualizados em tempo real via listener no Firebase
+    let globalUsersData = {};
+    let globalUsersListenerAttached = false;
+
+    // Liga um listener em tempo real na raiz 'users/' do Firebase. Sempre que qualquer
+    // usuário criar/alterar um deck ou registrar uma partida, os dados chegam aqui
+    // automaticamente (sem precisar recarregar a página) e o dropdown de decks é
+    // repopulado se um formato já estiver selecionado.
+    function attachGlobalUsersListener() {
+        if (globalUsersListenerAttached || !firebaseApp) return;
+        globalUsersListenerAttached = true;
+
+        const usersRef = firebaseApp.database().ref('users');
+        usersRef.on('value', (snapshot) => {
+            globalUsersData = snapshot.val() || {};
+
+            // Atualiza o dropdown "Deck Atual" em tempo real com os decks de todos os usuários
+            if (currentFormat) {
+                popularDeckSelector();
+            }
+        }, (error) => {
+            console.error('Erro no listener global de usuários (decks de todos):', error);
+        });
+    }
+
     // Função para buscar todos os usuários do banco
     async function loadAllUsers() {
         try {
@@ -338,6 +366,32 @@
         });
         
         return Array.from(allDecks).sort();
+    }
+
+    // Lê (em memória, sem chamada de rede) os decks de TODOS os usuários para um formato,
+    // a partir dos dados mantidos em tempo real por attachGlobalUsersListener().
+    // Considera tanto os decks "próprios" de cada usuário quanto os decks oponentes
+    // registrados nas partidas de qualquer um deles.
+    function getGlobalDecksForFormat(format) {
+        if (!format) return [];
+
+        const allDecks = new Set();
+
+        Object.values(globalUsersData).forEach(userData => {
+            const formatData = userData && userData[format];
+            const decksNode = (formatData && formatData.decks) ? formatData.decks : {};
+
+            Object.entries(decksNode).forEach(([deckName, deckMatches]) => {
+                allDecks.add(deckName);
+                Object.values(deckMatches || {}).forEach(match => {
+                    if (match && match.deckOponente) {
+                        allDecks.add(match.deckOponente);
+                    }
+                });
+            });
+        });
+
+        return Array.from(allDecks);
     }
 
     function toggleControls(enable) {
@@ -580,9 +634,6 @@
             return; 
         }
 
-        currentDeckSelect.innerHTML = '';
-        currentDeckSelect.appendChild(new Option('Selecione seu Deck Atual', '', false, false));
-        
         const metagameDecks = METAGAME_DECKS_BY_FORMAT[currentFormat] || [];
         console.log('Metagame decks for', currentFormat, ':', metagameDecks);
         
@@ -595,7 +646,7 @@
             }
         });
         
-        // Adiciona decks já criados pelo usuário
+        // Adiciona decks já criados pelo usuário atual
         const existingUserDecks = getCurrentDecks(currentFormat);
         const existingUserDeckNames = Object.keys(existingUserDecks);
         console.log('Existing user decks:', existingUserDeckNames);
@@ -603,9 +654,23 @@
         existingUserDeckNames.forEach(name => {
             uniqueDeckOptions.add(name);
         });
+
+        // Adiciona TODOS os decks já lançados por QUALQUER usuário no banco de dados
+        // (dados mantidos em tempo real por attachGlobalUsersListener)
+        const globalDecks = getGlobalDecksForFormat(currentFormat);
+        console.log('Global decks (todos os usuários, tempo real):', globalDecks);
+
+        globalDecks.forEach(name => {
+            if (name !== 'Outro') {
+                uniqueDeckOptions.add(name);
+            }
+        });
         
         const finalDeckList = Array.from(uniqueDeckOptions).sort();
         console.log('Final deck list:', finalDeckList);
+
+        currentDeckSelect.innerHTML = '';
+        currentDeckSelect.appendChild(new Option('Selecione seu Deck Atual', '', false, false));
 
         finalDeckList.forEach(name => {
             currentDeckSelect.appendChild(new Option(name, name));
