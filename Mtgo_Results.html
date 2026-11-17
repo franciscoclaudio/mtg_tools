@@ -98,7 +98,7 @@
             return;
         }
 
-        showStatus('Buscando dados via API do MTGGoldfish...', 'loading');
+        showStatus('Buscando dados...', 'loading');
         hideResults();
 
         playerData = {
@@ -113,15 +113,48 @@
             deckStats: {},
             formatStats: {}
         };
+
+        const targetUrl = `https://www.mtggoldfish.com/player/${username}.json`;
         
+        // Múltiplos proxies em cascata para tentar contornar erros de CORS
+        const proxyUrls = [
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+            `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`,
+            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`
+        ];
+
+        let data = null;
+
+        for (let url of proxyUrls) {
+            try {
+                const response = await fetch(url);
+                if (response.ok) {
+                    data = await response.json();
+                    break; 
+                }
+            } catch (err) {
+                console.warn('Tentativa de proxy falhou, tentando o próximo...');
+            }
+        }
+
+        if (!data) {
+            const resultsBody = document.getElementById('results-body');
+            document.getElementById('recent-results').style.display = 'block';
+            resultsBody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 30px;">
+                        <p style="margin-bottom: 15px; color: #EF5350;">⚠️ O MTGGoldfish bloqueou a leitura automática por segurança (CORS).</p>
+                        <a href="https://www.mtggoldfish.com/player/${username}" target="_blank" class="btn btn-primary" style="display: inline-block;">
+                            Abrir Perfil Oficial no MTGGoldfish ↗
+                        </a>
+                    </td>
+                </tr>
+            `;
+            showStatus('❌ Erro de bloqueio de CORS pelo servidor de destino.', 'error');
+            return;
+        }
+
         try {
-            const targetUrl = `https://www.mtggoldfish.com/player/${username}.json`;
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
-            
-            const response = await fetch(proxyUrl);
-            if (!response.ok) throw new Error('Jogador não encontrado ou erro na API');
-            
-            const data = await response.json();
             const results = data.tournament_results || data.results || data;
             
             if (!Array.isArray(results) || results.length === 0) {
@@ -174,19 +207,7 @@
             showStatus(`✅ ${playerData.totalEvents} resultados carregados com sucesso!`, 'success');
 
         } catch (error) {
-            const resultsBody = document.getElementById('results-body');
-            document.getElementById('recent-results').style.display = 'block';
-            resultsBody.innerHTML = `
-                <tr>
-                    <td colspan="5" style="text-align: center; padding: 30px;">
-                        <p style="margin-bottom: 15px;">⚠️ Não foi possível carregar automaticamente. Acesse diretamente:</p>
-                        <a href="https://www.mtggoldfish.com/player/${username}" target="_blank" class="btn btn-primary" style="display: inline-block;">
-                            Abrir Perfil no MTGGoldfish
-                        </a>
-                    </td>
-                </tr>
-            `;
-            showStatus(`❌ Erro: ${error.message}.`, 'error');
+            showStatus(`❌ Erro ao processar os dados: ${error.message}.`, 'error');
         }
     }
 
