@@ -28,47 +28,69 @@
             </svg>
         </button>
     </div>
-    <nav>
-        <ul>
-            <li><a href="/mtg_tools/Ferramentas_MTG.html" class="active">🏠 Menu Principal</a></li>
-            <li><a href="/mtg_tools/Deck_Tracker_V3.html">📊 Deck Stats Tracker</a></li>
-            <li><a href="/mtg_tools/Calculadora_MTG.html">🧮 Calculadora de Probabilidade</a></li>
-            <li><a href="/mtg_tools/Mtgo_Results.html">🏆 MTGO Results</a></li>
-            <li><a href="/mtg_tools/Matchup_Matrix.html">📈 Matchup Matrix</a></li>
-        </ul>
-    </nav>
-    <div class="container">
-        <header>
-            <h1>Ferramentas MTG</h1>
-            <h2 style="text-align: center;">Suíte de Utilidades para Magic: The Gathering</h2>
+
+    <div class="menu-screen">
+        <header class="menu-header">
+            <h1>MTG Ferramentas</h1>
+            <p>Selecione uma ferramenta para começar</p>
         </header>
 
-        <main>
-            <section>
-                <h2>Selecione a ferramenta que você deseja utilizar:</h2>
-                <ul>
-                    <li><a href="/mtg_tools/Deck_Tracker_V3.html" class="btn btn-primary">📊 Deck Stats Tracker</a></li>
-                    <li><a href="/mtg_tools/Calculadora_MTG.html" class="btn btn-primary">🧮 Calculadora Mtg</a></li>
-                    <li><a href="/mtg_tools/Mtgo_Results.html" class="btn btn-primary">🏆 MTGO Results</a></li>
-                    <li><a href="/mtg_tools/Matchup_Matrix.html" class="btn btn-primary">📈 Matchup Matrix</a></li>
-                </ul>
-            </section>
+        <main class="tools-grid">
+            <!-- Card 1 -->
+            <a href="/mtg_tools/Deck_Tracker_V3.html" class="tool-card">
+                <div class="tool-icon">📊</div>
+                <div class="tool-content">
+                    <span class="tool-title">Deck Stats Tracker</span>
+                    <span class="tool-desc">Gerencie estatísticas e resultados</span>
+                </div>
+                <div class="tool-arrow">→</div>
+            </a>
+
+            <!-- Card 2 -->
+            <a href="/mtg_tools/Calculadora_MTG.html" class="tool-card">
+                <div class="tool-icon">🧮</div>
+                <div class="tool-content">
+                    <span class="tool-title">Calculadora Mtg</span>
+                    <span class="tool-desc">Probabilidades e estatísticas de deck</span>
+                </div>
+                <div class="tool-arrow">→</div>
+            </a>
+
+            <!-- Card 3 -->
+            <a href="/mtg_tools/Mtgo_Results.html" class="tool-card">
+                <div class="tool-icon">🏆</div>
+                <div class="tool-content">
+                    <span class="tool-title">MTGO Results</span>
+                    <span class="tool-desc">Consulte resultados de torneios</span>
+                </div>
+                <div class="tool-arrow">→</div>
+            </a>
+
+            <!-- Card 4 -->
+            <a href="/mtg_tools/Matchup_Matrix.html" class="tool-card">
+                <div class="tool-icon">📈</div>
+                <div class="tool-content">
+                    <span class="tool-title">Matchup Matrix</span>
+                    <span class="tool-desc">Análise de confrontos diretos</span>
+                </div>
+                <div class="tool-arrow">→</div>
+            </a>
         </main>
 
-        <footer>
+        <footer style="margin-top: auto; padding-top: 2rem; opacity: 0.6; font-size: 0.8rem;">
             Ferramentas desenvolvidas para a comunidade de Magic: The Gathering.
         </footer>
     </div>
+
     <script>
         // ============================================
-        // PWA INSTALL PROMPT (CORRIGIDO)
+        // PWA INSTALL PROMPT
         // ============================================
         let deferredPrompt;
         const installPrompt = document.getElementById('installPrompt');
         const installBtn = document.getElementById('installBtn');
         const dismissBtn = document.getElementById('dismissInstall');
 
-        // Registrar Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/mtg_tools/service-worker.js')
@@ -77,7 +99,6 @@
             });
         }
 
-        // Detectar se é iOS/Safari
         function isIOS() {
             return /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
         }
@@ -86,57 +107,37 @@
             return ('standalone' in window.navigator) && (window.navigator.standalone);
         }
 
-        // Função para verificar se o prompt deve ser mostrado
-        function shouldShowInstallPrompt() {
-            // SEMPRE MOSTRAR O PROMPT
-            return true;
-        }
-
-        // Capturar evento de instalação (Chrome/Edge Android/Desktop)
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            
-            // Sempre mostra o prompt
             installPrompt.classList.remove('hidden');
         });
 
-        // Para iOS: Mostrar instruções se não estiver instalado
         window.addEventListener('load', () => {
             if (isIOS() && !isInStandaloneMode()) {
-                // Sempre mostra o prompt no iOS
                 const installContent = installPrompt.querySelector('.install-content');
                 installContent.innerHTML = `
                     <p class="install-title">Instalar como App</p>
                     <p class="install-subtitle">Toque em <span style="font-size: 1.2em;">⎙</span> e depois "Adicionar à Tela Inicial"</p>
                 `;
-                
-                // Remove o botão "Instalar" no iOS (não funciona)
                 installBtn.style.display = 'none';
-                
-                // Mostra o prompt
                 installPrompt.classList.remove('hidden');
             }
         });
 
-        // Botão de instalar (apenas Android/Desktop)
         installBtn.addEventListener('click', async () => {
             if (!deferredPrompt) return;
-            
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
             console.log(`Usuário ${outcome === 'accepted' ? 'aceitou' : 'recusou'} a instalação`);
-            
             deferredPrompt = null;
             installPrompt.classList.add('hidden');
         });
 
-        // Botão de dispensar (apenas esconde temporariamente)
         dismissBtn.addEventListener('click', () => {
             installPrompt.classList.add('hidden');
         });
 
-        // Esconder banner quando o app já está instalado
         window.addEventListener('appinstalled', () => {
             installPrompt.classList.add('hidden');
             console.log('PWA instalado com sucesso!');
