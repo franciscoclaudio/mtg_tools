@@ -5,70 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MTGO Results Tracker</title>
     <link rel="stylesheet" href="/mtg_tools/styles/main_style.css">
-    <style>
-        .deck-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            padding: 20px;
-        }
-        .deck-modal.active {
-            display: flex;
-        }
-        .deck-modal-content {
-            background: #2a2a2a;
-            border-radius: 12px;
-            padding: 25px;
-            max-width: 500px;
-            width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #e8e8e8;
-        }
-        .deck-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #4a4a4a;
-            padding-bottom: 10px;
-        }
-        .deck-modal-close {
-            background: none;
-            border: none;
-            color: #b8b8b8;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-        .deck-modal-close:hover {
-            color: #fff;
-        }
-        .clickable-row {
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .clickable-row:hover {
-            background-color: rgba(76, 175, 80, 0.15) !important;
-        }
-        .decklist-text {
-            font-family: monospace;
-            white-space: pre-wrap;
-            background: #1e1e1e;
-            padding: 15px;
-            border-radius: 6px;
-            border: 1px solid #3a3a3a;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            color: #4CAF50;
-        }
-    </style>
 </head>
 <body>
     <nav>
@@ -92,7 +28,7 @@
                 <button onclick="searchPlayer()">Buscar Resultados</button>
             </div>
             <p style="font-size: 0.9em; color: #b8b8b8; margin-top: 10px;">
-                ℹ️ Clique em qualquer linha da tabela para ver a lista do deck
+                ℹ️ Os dados são extraídos diretamente do MTGGoldfish
             </p>
         </section>
 
@@ -129,7 +65,7 @@
         </section>
 
         <section id="recent-results" style="display: none;">
-            <h2>🎯 Últimos Resultados (Clique na linha para ver a lista)</h2>
+            <h2>🎯 Últimos Resultados</h2>
             <table id="results-table">
                 <thead>
                     <tr>
@@ -151,15 +87,6 @@
         </section>
     </div>
 
-    <div class="deck-modal" id="deckModal">
-        <div class="deck-modal-content">
-            <div class="deck-modal-header">
-                <h3 id="modalDeckTitle">Lista do Deck</h3>
-                <button class="deck-modal-close" onclick="closeDeckModal()">×</button>
-            </div>
-            <div id="modalDeckBody" class="decklist-text">Carregando lista...</div>
-        </div>
-    </div>
 <script>
     let playerData = null;
 
@@ -197,7 +124,7 @@
             playerData.recentResults = playerData.recentResults.slice(0, 20);
 
             displayResults();
-            showStatus(`✅ ${playerData.totalEvents} resultados encontrados para ${playerData.username}!`, 'success');
+            showStatus(`✅ ${playerData.totalEvents} resultados encontrados para ${playerData.username} em todas as páginas!`, 'success');
 
         } catch (error) {
             const resultsBody = document.getElementById('results-body');
@@ -205,24 +132,25 @@
             resultsBody.innerHTML = `
                 <tr>
                     <td colspan="5" style="text-align: center; padding: 30px;">
-                        <p style="margin-bottom: 15px;">⚠️ O MTGGoldfish bloqueou temporariamente a leitura automática.</p>
+                        <p style="margin-bottom: 15px;">⚠️ Não foi possível acessar automaticamente os dados devido a restrições de CORS/Cloudflare.</p>
                         <a href="https://www.mtggoldfish.com/player/${username}" 
                            target="_blank" 
                            class="btn btn-primary"
                            style="display: inline-block;">
-                            Abrir Perfil no MTGGoldfish ↗
+                            Abrir Perfil no MTGGoldfish
                         </a>
                     </td>
                 </tr>
             `;
-            showStatus(`❌ Erro: ${error.message}.`, 'error');
+            showStatus(`❌ Erro durante a busca: ${error.message}.`, 'error');
         }
     }
 
     const CORS_PROXIES = [
         (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
         (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
-        (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+        (url) => `https://thingproxy.freeboard.io/fetch/${url}`
     ];
 
     async function fetchWithProxyFallback(targetUrl) {
@@ -232,18 +160,35 @@
             const proxyUrl = CORS_PROXIES[i](targetUrl);
             try {
                 const response = await fetch(proxyUrl, { cache: 'no-store' });
-                if (!response.ok) continue;
+
+                if (!response.ok) {
+                    lastError = new Error(`Proxy retornou status ${response.status}`);
+                    continue;
+                }
 
                 const html = await response.text();
-                if (!html || html.length < 500) continue;
-                if (/attention required|checking your browser/i.test(html)) continue;
 
-                return html;
+                if (!html || html.length < 500) {
+                    lastError = new Error('Resposta vazia ou muito curta do proxy');
+                    continue;
+                }
+                if (/attention required|checking your browser|cf-browser-verification/i.test(html)) {
+                    lastError = new Error('Bloqueado por proteção anti-bot (Cloudflare)');
+                    continue;
+                }
+                if (!/mtggoldfish/i.test(html)) {
+                    lastError = new Error('Conteúdo retornado não parece ser do MTGGoldfish');
+                    continue;
+                }
+
+                return html; 
             } catch (err) {
                 lastError = err;
+                continue;
             }
         }
-        throw lastError || new Error('Todos os proxies falharam ao carregar a página.');
+
+        throw lastError || new Error('Todos os proxies falharam');
     }
 
     async function paginateAndFetch(username, page) {
@@ -252,53 +197,26 @@
         const url = `https://www.mtggoldfish.com/player/${username}${page > 1 ? `?page=${page}` : ''}`;
 
         try {
-            const html = await fetchWithProxyDownloads(url);
+            const html = await fetchWithProxyFallback(url);
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
             
-            const rows = Array.from(doc.querySelectorAll('table tbody tr'));
-            const validResults = [];
-
-            for (let i = 0; i < rows.length; i++) {
-                const row = rows[i];
+            // Filtra linhas para garantir que pegamos apenas registros válidos baseados na data (ex: YYYY-MM-DD)
+            const validRows = Array.from(doc.querySelectorAll('table tbody tr')).filter(row => {
                 const cells = row.querySelectorAll('td');
-                if (cells.length < 5) continue;
-
+                if (cells.length < 5) return false;
                 const firstCellText = cells[0].textContent.trim();
-                if (/^\d{4}-\d{2}-\d{2}$/.test(firstCellText)) {
-                    let decklistHtml = "Lista não detalhada diretamente nesta linha.";
-                    
-                    const deckLinkElem = cells[3].querySelector('a') || cells[cells.length - 1].querySelector('a');
-                    let deckUrl = "";
-                    if (deckLinkElem && deckLinkElem.getAttribute('href')) {
-                        deckUrl = "https://www.mtggoldfish.com" + deckLinkElem.getAttribute('href');
-                    }
+                return /^\d{4}-\d{2}-\d{2}$/.test(firstCellText);
+            });
 
-                    if (i + 1 < rows.length) {
-                        const nextRow = rows[i+1];
-                        if (nextRow.querySelector('.deck-list-print, td')) {
-                            decklistHtml = nextRow.textContent.trim();
-                        }
-                    }
-
-                    validResults.push({
-                        date: cells[0].textContent.trim(),
-                        event: cells[1].textContent.trim(),
-                        format: cells[2].textContent.trim(),
-                        deck: cells[3].textContent.trim(),
-                        placement: cells[4].textContent.trim(),
-                        deckUrl: deckUrl,
-                        rawDetails: decklistHtml
-                    });
+            if (validRows.length === 0) {
+                if (page === 1) {
+                    throw new Error('Jogador não encontrado ou layout bloqueado');
                 }
-            }
-
-            if (validResults.length === 0) {
-                if (page === 1) throw new Error('Jogador não encontrado');
                 return;
             }
 
-            parsePageResults(validResults);
+            parsePageResults(validRows);
 
             const nextPageLink = doc.querySelector('.pagination .next_page:not(.disabled), a[rel="next"]');
             if (nextPageLink) {
@@ -306,36 +224,61 @@
             }
 
         } catch (error) {
-            if (page === 1) throw error;
+            if (page === 1) {
+                throw error; 
+            }
+            console.log(`Fim da paginação na página ${page}: ${error.message}`);
         }
     }
 
-    async function fetchWithProxyDownloads(targetUrl) {
-        return await fetchWithProxyFallback(targetUrl);
-    }
-    function parsePageResults(resultsArray) {
-        resultsArray.forEach(item => {
-            playerData.recentResults.push(item);
-            playerData.totalEvents++;
-
-            const finishLower = item.placement.toLowerCase();
-            const match = item.placement.match(/^(\d+)/);
-            const placementNum = match ? parseInt(match[1]) : NaN;
+    function parsePageResults(rows) {
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
             
-            if (/\b5\s*-\s*0\b/.test(finishLower)) {
-                playerData.fiveO++;
-            } else if (!isNaN(placementNum) && placementNum > 0) {
-                if (placementNum === 1) playerData.top1++;
-                else if (placementNum <= 8) playerData.top8++;
-                else if (placementNum <= 16) playerData.top16++;
-                else if (placementNum <= 32) playerData.top32++;
-            }
+            // Mapeamento ajustado para a nova tabela de 8 colunas do MTGGoldfish:
+            // [0] Date, [1] Event, [2] Format, [3] Deck, [4] Finish, [5] Price Paper, [6] Price MTGO, [7] View Deck[span_5](start_span)[span_5](end_span)
+            const date = cells[0]?.textContent.trim() || '';
+            const eventName = cells[1]?.textContent.trim() || '';
+            const format = cells[2]?.textContent.trim() || '';
+            const deckName = cells[3]?.textContent.trim() || '';
+            const finish = cells[4]?.textContent.trim() || '';
 
-            if (item.deck) {
-                playerData.deckStats[item.deck] = (playerData.deckStats[item.deck] || 0) + 1;
-            }
-            if (item.format) {
-                playerData.formatStats[item.format] = (playerData.formatStats[item.format] || 0) + 1;
+            if (date && eventName) {
+                playerData.recentResults.push({
+                    date: date,
+                    event: eventName,
+                    format: format,
+                    deck: deckName,
+                    placement: finish
+                });
+
+                playerData.totalEvents++;
+
+                const finishLower = finish.toLowerCase();
+                const match = finish.match(/^(\d+)/);
+                const placementNum = match ? parseInt(match[1]) : NaN;
+                
+                if (/\b5\s*-\s*0\b/.test(finishLower)) {
+                    playerData.fiveO++;
+                } else if (!isNaN(placementNum) && placementNum > 0) {
+                    if (placementNum === 1) {
+                        playerData.top1++;
+                    } else if (placementNum <= 8) {
+                        playerData.top8++;
+                    } else if (placementNum <= 16) { 
+                        playerData.top16++;
+                    } else if (placementNum <= 32) {
+                        playerData.top32++;
+                    }
+                }
+
+                if (deckName) {
+                    playerData.deckStats[deckName] = (playerData.deckStats[deckName] || 0) + 1;
+                }
+
+                if (format) {
+                    playerData.formatStats[format] = (playerData.formatStats[format] || 0) + 1;
+                }
             }
         });
     }
@@ -362,10 +305,8 @@
                 </tr>
             `;
         } else {
-            playerData.recentResults.forEach((result, index) => {
+            playerData.recentResults.forEach(result => {
                 const row = tbody.insertRow();
-                row.className = 'clickable-row';
-                row.onclick = () => openDeckModal(index);
                 
                 let placementStyle = '';
                 const finishLower = result.placement.toLowerCase();
@@ -390,7 +331,7 @@
                 row.innerHTML = `
                     <td>${result.date}</td>
                     <td>${result.event}</td>
-                    <td><strong>${result.deck}</strong> 🔍</td>
+                    <td><strong>${result.deck}</strong></td>
                     <td style="${placementStyle}">${result.placement}</td>
                     <td>${result.format}</td>
                 `;
@@ -400,41 +341,6 @@
         displayDeckStats();
         displayFormatStats();
         showResults();
-    }
-
-    async function openDeckModal(index) {
-        const modal = document.getElementById('deckModal');
-        const title = document.getElementById('modalDeckTitle');
-        const body = document.getElementById('modalDeckBody');
-        
-        const result = playerData.recentResults[index];
-        title.textContent = `${result.deck} (${result.placement} - ${result.event})`;
-        body.textContent = "Carregando detalhes e lista do deck...";
-        modal.classList.add('active');
-
-        if (result.deckUrl) {
-            try {
-                const html = await fetchWithProxyFallback(result.deckUrl);
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                const textareaList = doc.querySelector('textarea.deck-list-text, textarea');
-                if (textareaList && textareaList.value.trim().length > 0) {
-                    body.textContent = textareaList.value;
-                    return;
-                }
-            } catch (e) {
-                console.warn("Não foi possível carregar a lista completa via link direto.");
-            }
-        }
-
-        body.textContent = result.rawDetails && result.rawDetails.length > 20 
-            ? result.rawDetails 
-            : `Detalhes diretos indisponíveis para este deck.\n\nAcesse o evento original no link:\n\n${result.deckUrl || 'https://www.mtggoldfish.com'}`;
-    }
-
-    function closeDeckModal() {
-        document.getElementById('deckModal').classList.remove('active');
     }
 
     function displayDeckStats() {
@@ -624,7 +530,6 @@
     #status.success {
         background-color: #0f2818;
         color: #4CAF50;
-        border: 25px;
         border: 2px solid #25633d;
     }
 
