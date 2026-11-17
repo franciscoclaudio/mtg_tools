@@ -151,9 +151,6 @@
         }
     }
 
-    // Lista de proxies CORS públicos, tentados em ordem até um funcionar.
-    // O allorigins.win sozinho é notoriamente instável (falha ~50% das vezes),
-    // então agora tentamos alternativas automaticamente antes de desistir.
     const CORS_PROXIES = [
         (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
         (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
@@ -176,8 +173,6 @@
 
                 const html = await response.text();
 
-                // Detecta respostas vazias, páginas de bloqueio/challenge do
-                // Cloudflare, ou payloads do proxy que não são HTML de verdade.
                 if (!html || html.length < 500) {
                     lastError = new Error('Resposta vazia ou muito curta do proxy');
                     continue;
@@ -191,7 +186,7 @@
                     continue;
                 }
 
-                return html; // sucesso
+                return html;
             } catch (err) {
                 lastError = err;
                 continue;
@@ -236,12 +231,23 @@
         
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
-            if (cells.length < 5) return;
+            if (cells.length < 8) return;
 
             const date = cells[0]?.textContent.trim() || '';
             const eventName = cells[1]?.textContent.trim() || '';
             const format = cells[2]?.textContent.trim() || '';
-            const deckName = cells[3]?.textContent.trim() || '';
+            
+            // Extrai o nome do deck e o link da decklist (se houver)
+            const deckCell = cells[3];
+            const deckLinkEl = deckCell?.querySelector('a');
+            const deckName = deckCell?.textContent.trim() || '';
+            let deckUrl = deckLinkEl ? deckLinkEl.getAttribute('href') : '';
+            
+            // Torna a URL absoluta caso venha relativa
+            if (deckUrl && deckUrl.startsWith('/')) {
+                deckUrl = `https://www.mtggoldfish.com${deckUrl}`;
+            }
+
             const finish = cells[4]?.textContent.trim() || '';
 
             if (date && eventName) {
@@ -250,23 +256,19 @@
                     event: eventName,
                     format: format,
                     deck: deckName,
+                    deckUrl: deckUrl,
                     placement: finish
                 });
 
                 playerData.totalEvents++;
 
                 const finishLower = finish.toLowerCase();
-                
-                // Extrai o número completo (ex: "12th" -> 12, "1st" -> 1)
                 const match = finish.match(/^(\d+)/);
                 const placementNum = match ? parseInt(match[1]) : NaN;
                 
-                // Verifica 5-0 primeiro (prioridade)
                 if (/\b5\s*-\s*0\b/.test(finishLower)) {
                     playerData.fiveO++;
-                } 
-                // Verifica colocações numéricas
-                else if (!isNaN(placementNum) && placementNum > 0) {
+                } else if (!isNaN(placementNum) && placementNum > 0) {
                     if (placementNum === 1) {
                         playerData.top1++;
                     } else if (placementNum <= 8) {
@@ -279,7 +281,10 @@
                 }
 
                 if (deckName) {
-                    playerData.deckStats[deckName] = (playerData.deckStats[deckName] || 0) + 1;
+                    if (!playerData.deckStats[deckName]) {
+                        playerData.deckStats[deckName] = { count: 0, url: deckUrl };
+                    }
+                    playerData.deckStats[deckName].count++;
                 }
 
                 if (format) {
@@ -317,40 +322,32 @@
                 let placementStyle = '';
                 const finishLower = result.placement.toLowerCase();
                 const placementText = result.placement.trim();
-                
-                // Extrai o número completo da colocação
                 const match = placementText.match(/^(\d+)/);
                 const placementNum = match ? parseInt(match[1]) : NaN;
                 
-                // Verifica se é 5-0
                 if (/\b5\s*-\s*0\b/i.test(finishLower)) {
                     placementStyle = 'color: #4CAF50; font-weight: bold;';
-                }
-                // 1º lugar - VERIFICA NÚMERO EXATO
-                else if (placementNum === 1) {
+                } else if (placementNum === 1) {
                     placementStyle = 'color: #FFD700; font-weight: bold;';
-                }
-                // 2º lugar - VERIFICA NÚMERO EXATO
-                else if (placementNum === 2) {
+                } else if (placementNum === 2) {
                     placementStyle = 'color: #C0C0C0; font-weight: bold;';
-                }
-                // 3º lugar - VERIFICA NÚMERO EXATO
-                else if (placementNum === 3) {
+                } else if (placementNum === 3) {
                     placementStyle = 'color: #CD7F32; font-weight: bold;';
-                }
-                // 4º-8º lugar (Top 8)
-                else if (!isNaN(placementNum) && placementNum >= 4 && placementNum <= 8) {
+                } else if (!isNaN(placementNum) && placementNum >= 4 && placementNum <= 8) {
                     placementStyle = 'color: #4CAF50; font-weight: bold;';
-                }
-                // 9º-16º lugar (Top 16)
-                else if (!isNaN(placementNum) && placementNum >= 9 && placementNum <= 16) {
+                } else if (!isNaN(placementNum) && placementNum >= 9 && placementNum <= 16) {
                     placementStyle = 'color: #66BB6A;';
                 }
                 
+                // Torna o nome do deck clicável se houver URL válida
+                const deckHtml = result.deckUrl 
+                    ? `<a href="${result.deckUrl}" target="_blank" style="color: #4CAF50; text-decoration: underline;" title="Ver Decklist">${result.deck}</a>`
+                    : `<strong>${result.deck}</strong>`;
+
                 row.innerHTML = `
                     <td>${result.date}</td>
                     <td>${result.event}</td>
-                    <td><strong>${result.deck}</strong></td>
+                    <td>${deckHtml}</td>
                     <td style="${placementStyle}">${result.placement}</td>
                     <td>${result.format}</td>
                 `;
@@ -369,7 +366,7 @@
         deckList.innerHTML = '';
 
         const sortedDecks = Object.entries(playerData.deckStats)
-            .sort((a, b) => b[1] - a[1])
+            .sort((a, b) => b[1].count - a[1].count)
             .slice(0, 10);
 
         if (sortedDecks.length === 0) {
@@ -377,12 +374,20 @@
             return;
         }
 
-        sortedDecks.forEach(([deck, count]) => {
+        sortedDecks.forEach(([deckName, data]) => {
+            const count = data.count;
+            const deckUrl = data.url;
             const percentage = ((count / playerData.totalEvents) * 100).toFixed(1);
+            
             const deckItem = document.createElement('div');
             deckItem.className = 'deck-stat-item';
+
+            const nameHtml = deckUrl 
+                ? `<a href="${deckUrl}" target="_blank" class="deck-name" style="color: #4CAF50; text-decoration: underline;" title="Ver Decklist">${deckName}</a>`
+                : `<span class="deck-name">${deckName}</span>`;
+
             deckItem.innerHTML = `
-                <span class="deck-name">${deck}</span>
+                ${nameHtml}
                 <span class="deck-count">${count} evento(s) (${percentage}%)</span>
             `;
             deckList.appendChild(deckItem);
