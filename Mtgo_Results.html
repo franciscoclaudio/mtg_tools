@@ -101,7 +101,6 @@
         showStatus('Buscando dados do jogador...', 'loading');
         hideResults();
 
-        lastPageSignature = '';
         playerData = {
             username: username,
             totalEvents: 0,
@@ -128,12 +127,18 @@
             showStatus(`✅ ${playerData.totalEvents} resultados encontrados para ${playerData.username} em todas as páginas!`, 'success');
 
         } catch (error) {
+            if (error.message.includes('Jogador não encontrado') || error.message.includes('Nenhum resultado')) {
+                 showStatus(`❌ Erro: ${error.message}. Verifique se o username está correto.`, 'error');
+            } else {
+                 showStatus(`❌ Erro durante a busca: ${error.message}.`, 'error');
+            }
+            
             const resultsBody = document.getElementById('results-body');
             document.getElementById('recent-results').style.display = 'block';
             resultsBody.innerHTML = `
                 <tr>
                     <td colspan="5" style="text-align: center; padding: 30px;">
-                        <p style="margin-bottom: 15px;">⚠️ Não foi possível acessar automaticamente os dados devido a restrições de CORS/Cloudflare.</p>
+                        <p style="margin-bottom: 15px;">⚠️ Não foi possível acessar automaticamente os dados.</p>
                         <a href="https://www.mtggoldfish.com/player/${username}" 
                            target="_blank" 
                            class="btn btn-primary"
@@ -143,50 +148,21 @@
                     </td>
                 </tr>
             `;
-            showStatus(`❌ Erro durante a busca: ${error.message}.`, 'error');
         }
     }
 
+    // Lista de proxies CORS públicos, tentados em ordem até um funcionar.
+    // O allorigins.win sozinho é notoriamente instável (falha ~50% das vezes),
+    // então agora tentamos alternativas automaticamente antes de desistir.
     const CORS_PROXIES = [
         (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
         (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
         (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
-        (url) => `https://thingproxy.freeboard.io/fetch/${url}`,
-        (url) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}&disableCache=true`
+        (url) => `https://thingproxy.freeboard.io/fetch/${url}`
     ];
-
-    const GOLDFISH = 'https://www.mtggoldfish.com';
-
-    // href relativo (ex: /deck/123) -> URL absoluta do MTGGoldfish
-    function absUrl(href) {
-        if (!href || href.startsWith('javascript:') || href === '#') return '';
-        try { return new URL(href, GOLDFISH).href; } catch { return ''; }
-    }
-
-    function esc(str) {
-        return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    }
-
-    // Procura o link da decklist (/deck/ID) na linha da tabela
-    function findDeckUrl(row, cells) {
-        const anchors = Array.from(row.querySelectorAll('a[href]'));
-        const byHref = anchors.find(a => /\/deck\/(?:visual\/|popup\/)?\d+/.test(a.getAttribute('href')));
-        if (byHref) {
-            const id = byHref.getAttribute('href').match(/\/deck\/(?:visual\/|popup\/)?(\d+)/)[1];
-            return `${GOLDFISH}/deck/${id}`;
-        }
-        // Algumas linhas guardam o ID em atributos data-* ou onclick
-        const withData = row.querySelector('[data-deck-id], [data-deck], [data-id]');
-        const dataId = withData && (withData.dataset.deckId || withData.dataset.deck || withData.dataset.id);
-        if (dataId && /^\d+$/.test(dataId)) return `${GOLDFISH}/deck/${dataId}`;
-        const clickHtml = row.innerHTML.match(/\/deck\/(?:popup\/)?(\d+)/);
-        if (clickHtml) return `${GOLDFISH}/deck/${clickHtml[1]}`;
-        return '';
-    }
 
     async function fetchWithProxyFallback(targetUrl) {
         let lastError = null;
-        const errors = [];
 
         for (let i = 0; i < CORS_PROXIES.length; i++) {
             const proxyUrl = CORS_PROXIES[i](targetUrl);
@@ -194,17 +170,14 @@
                 const response = await fetch(proxyUrl, { cache: 'no-store' });
 
                 if (!response.ok) {
-                    lastError = new Error(`Proxy ${i + 1}: status ${response.status}`);
-                    errors.push(lastError.message);
+                    lastError = new Error(`Proxy retornou status ${response.status}`);
                     continue;
                 }
 
-                let html = await response.text();
-                // O endpoint /get do allorigins devolve JSON com o HTML em "contents"
-                if (html.trim().startsWith('{')) {
-                    try { html = JSON.parse(html).contents || html; } catch {}
-                }
+                const html = await response.text();
 
+                // Detecta respostas vazias, páginas de bloqueio/challenge do
+                // Cloudflare, ou payloads do proxy que não são HTML de verdade.
                 if (!html || html.length < 500) {
                     lastError = new Error('Resposta vazia ou muito curta do proxy');
                     continue;
@@ -218,18 +191,15 @@
                     continue;
                 }
 
-                return html; 
+                return html; // sucesso
             } catch (err) {
                 lastError = err;
                 continue;
             }
         }
 
-        console.warn('Falha em todos os proxies:', errors);
         throw lastError || new Error('Todos os proxies falharam');
     }
-
-    let lastPageSignature = '';
 
     async function paginateAndFetch(username, page) {
         showStatus(`Buscando dados da página ${page}...`, 'loading');
@@ -240,61 +210,39 @@
             const html = await fetchWithProxyFallback(url);
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
-            
-            // Filtra linhas para garantir que pegamos apenas registros válidos baseados na data (ex: YYYY-MM-DD)
-            const validRows = Array.from(doc.querySelectorAll('table tr')).filter(row => {
-                const cells = row.querySelectorAll('td');
-                if (cells.length < 5) return false;
-                const firstCellText = cells[0].textContent.trim();
-                return /^\d{4}-\d{2}-\d{2}$/.test(firstCellText);
-            });
+            const rows = doc.querySelectorAll('table tbody tr');
 
-            if (validRows.length === 0) {
+            if (rows.length === 0) {
                 if (page === 1) {
-                    throw new Error('Jogador não encontrado ou layout bloqueado');
+                    throw new Error('Jogador não encontrado');
                 }
+                console.log(`Nenhum resultado encontrado na página ${page}. Parando paginação.`);
                 return;
             }
 
-            // Evita loop se o proxy devolver sempre a mesma página
-            const signature = validRows.map(r => r.textContent.replace(/\s+/g, ' ').trim()).join('|');
-            if (signature === lastPageSignature) return;
-            lastPageSignature = signature;
-
-            parsePageResults(validRows);
-
-            // Existe link para a próxima página? (?page=N+1) ou rel="next"
-            const hasNext = Array.from(doc.querySelectorAll('a[href]')).some(a => {
-                const m = a.getAttribute('href').match(/[?&]page=(\d+)/);
-                return m && parseInt(m[1]) === page + 1;
-            }) || !!doc.querySelector('a[rel="next"]');
-
-            if (hasNext && page < 20) {
-                await paginateAndFetch(username, page + 1);
-            }
+            parsePageResults(doc);
+            await paginateAndFetch(username, page + 1);
 
         } catch (error) {
             if (page === 1) {
                 throw error; 
             }
-            console.log(`Fim da paginação na página ${page}: ${error.message}`);
+            console.log(`Erro ao buscar a página ${page}: ${error.message}. Parando paginação.`);
         }
     }
 
-    function parsePageResults(rows) {
+    function parsePageResults(doc) {
+        const rows = doc.querySelectorAll('table tbody tr');
+        
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
-            
-            // Mapeamento ajustado para a nova tabela de 8 colunas do MTGGoldfish:
-            // [0] Date, [1] Event, [2] Format, [3] Deck, [4] Finish, [5] Price Paper, [6] Price MTGO, [7] View Deck[span_5](start_span)[span_5](end_span)
+            if (cells.length < 5) return;
+
             const date = cells[0]?.textContent.trim() || '';
             const eventName = cells[1]?.textContent.trim() || '';
             const format = cells[2]?.textContent.trim() || '';
             const deckName = cells[3]?.textContent.trim() || '';
             const finish = cells[4]?.textContent.trim() || '';
-            const eventUrl = absUrl(cells[1]?.querySelector('a[href]')?.getAttribute('href'));
-            const archetypeUrl = absUrl(cells[3]?.querySelector('a[href]')?.getAttribute('href'));
-            const deckUrl = findDeckUrl(row, cells);
 
             if (date && eventName) {
                 playerData.recentResults.push({
@@ -302,21 +250,23 @@
                     event: eventName,
                     format: format,
                     deck: deckName,
-                    placement: finish,
-                    eventUrl: eventUrl,
-                    deckUrl: deckUrl || archetypeUrl || eventUrl,
-                    hasDecklist: !!deckUrl
+                    placement: finish
                 });
 
                 playerData.totalEvents++;
 
                 const finishLower = finish.toLowerCase();
+                
+                // Extrai o número completo (ex: "12th" -> 12, "1st" -> 1)
                 const match = finish.match(/^(\d+)/);
                 const placementNum = match ? parseInt(match[1]) : NaN;
                 
+                // Verifica 5-0 primeiro (prioridade)
                 if (/\b5\s*-\s*0\b/.test(finishLower)) {
                     playerData.fiveO++;
-                } else if (!isNaN(placementNum) && placementNum > 0) {
+                } 
+                // Verifica colocações numéricas
+                else if (!isNaN(placementNum) && placementNum > 0) {
                     if (placementNum === 1) {
                         playerData.top1++;
                     } else if (placementNum <= 8) {
@@ -367,43 +317,51 @@
                 let placementStyle = '';
                 const finishLower = result.placement.toLowerCase();
                 const placementText = result.placement.trim();
+                
+                // Extrai o número completo da colocação
                 const match = placementText.match(/^(\d+)/);
                 const placementNum = match ? parseInt(match[1]) : NaN;
                 
+                // Verifica se é 5-0
                 if (/\b5\s*-\s*0\b/i.test(finishLower)) {
                     placementStyle = 'color: #4CAF50; font-weight: bold;';
-                } else if (placementNum === 1) {
+                }
+                // 1º lugar - VERIFICA NÚMERO EXATO
+                else if (placementNum === 1) {
                     placementStyle = 'color: #FFD700; font-weight: bold;';
-                } else if (placementNum === 2) {
+                }
+                // 2º lugar - VERIFICA NÚMERO EXATO
+                else if (placementNum === 2) {
                     placementStyle = 'color: #C0C0C0; font-weight: bold;';
-                } else if (placementNum === 3) {
+                }
+                // 3º lugar - VERIFICA NÚMERO EXATO
+                else if (placementNum === 3) {
                     placementStyle = 'color: #CD7F32; font-weight: bold;';
-                } else if (!isNaN(placementNum) && placementNum >= 4 && placementNum <= 8) {
+                }
+                // 4º-8º lugar (Top 8)
+                else if (!isNaN(placementNum) && placementNum >= 4 && placementNum <= 8) {
                     placementStyle = 'color: #4CAF50; font-weight: bold;';
-                } else if (!isNaN(placementNum) && placementNum >= 9 && placementNum <= 16) {
+                }
+                // 9º-16º lugar (Top 16)
+                else if (!isNaN(placementNum) && placementNum >= 9 && placementNum <= 16) {
                     placementStyle = 'color: #66BB6A;';
                 }
                 
-                const eventCell = result.eventUrl
-                    ? `<a class="mtg-link" href="${esc(result.eventUrl)}" target="_blank" rel="noopener noreferrer">${esc(result.event)}</a>`
-                    : esc(result.event);
-                const deckCell = result.deckUrl
-                    ? `<a class="mtg-link" href="${esc(result.deckUrl)}" target="_blank" rel="noopener noreferrer" title="${result.hasDecklist ? 'Abrir decklist' : 'Abrir página relacionada'}"><strong>${esc(result.deck)}</strong> ↗</a>`
-                    : `<strong>${esc(result.deck)}</strong>`;
-
                 row.innerHTML = `
-                    <td>${esc(result.date)}</td>
-                    <td>${eventCell}</td>
-                    <td>${deckCell}</td>
-                    <td style="${placementStyle}">${esc(result.placement)}</td>
-                    <td>${esc(result.format)}</td>
+                    <td>${result.date}</td>
+                    <td>${result.event}</td>
+                    <td><strong>${result.deck}</strong></td>
+                    <td style="${placementStyle}">${result.placement}</td>
+                    <td>${result.format}</td>
                 `;
             });
         }
 
         displayDeckStats();
         displayFormatStats();
+        
         showResults();
+        showStatus(`✅ ${playerData.totalEvents} resultados encontrados para ${playerData.username}!`, 'success');
     }
 
     function displayDeckStats() {
@@ -606,12 +564,11 @@
         .input-group {
             flex-direction: column;
         }
+
         .stats-grid {
             grid-template-columns: 1fr;
         }
     }
-    .mtg-link { color: #64b5f6; text-decoration: none; }
-    .mtg-link:hover { text-decoration: underline; color: #90caf9; }
 </style>
 </body>
 </html>
