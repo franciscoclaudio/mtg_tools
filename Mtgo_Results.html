@@ -28,7 +28,7 @@
                 <button onclick="searchPlayer()">Buscar Resultados</button>
             </div>
             <p style="font-size: 0.9em; color: #b8b8b8; margin-top: 10px;">
-                ℹ️ Os dados são extraídos diretamente do MTGGoldfish
+                ℹ️ Os dados são extraídos diretamente do MTGGoldfish via API
             </p>
         </section>
 
@@ -98,7 +98,7 @@
             return;
         }
 
-        showStatus('Buscando dados do jogador...', 'loading');
+        showStatus('Buscando dados via API do MTGGoldfish...', 'loading');
         hideResults();
 
         playerData = {
@@ -115,183 +115,79 @@
         };
         
         try {
-            await paginateAndFetch(username, 1);
+            const targetUrl = `https://www.mtggoldfish.com/player/${username}.json`;
+            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
             
-            if (playerData.totalEvents === 0) {
+            const response = await fetch(proxyUrl);
+            if (!response.ok) throw new Error('Jogador não encontrado ou erro na API');
+            
+            const data = await response.json();
+            const results = data.tournament_results || data.results || data;
+            
+            if (!Array.isArray(results) || results.length === 0) {
                 throw new Error('Nenhum resultado encontrado para este jogador');
             }
-            
+
+            results.forEach(item => {
+                const date = item.date || item.created_at || '';
+                const eventName = item.tournament_name || item.event || '';
+                const format = item.format || '';
+                const deckName = item.deck_name || item.archetype || '';
+                const finish = item.finish || item.placement || '';
+
+                if (date && eventName) {
+                    playerData.recentResults.push({
+                        date: String(date).split('T')[0],
+                        event: eventName,
+                        format: format,
+                        deck: deckName,
+                        placement: finish
+                    });
+
+                    playerData.totalEvents++;
+
+                    const finishLower = String(finish).toLowerCase();
+                    const match = String(finish).match(/^(\d+)/);
+                    const placementNum = match ? parseInt(match[1]) : NaN;
+                    
+                    if (/\b5\s*-\s*0\b/.test(finishLower)) {
+                        playerData.fiveO++;
+                    } else if (!isNaN(placementNum) && placementNum > 0) {
+                        if (placementNum === 1) playerData.top1++;
+                        else if (placementNum <= 8) playerData.top8++;
+                        else if (placementNum <= 16) playerData.top16++;
+                        else if (placementNum <= 32) playerData.top32++;
+                    }
+
+                    if (deckName) {
+                        playerData.deckStats[deckName] = (playerData.deckStats[deckName] || 0) + 1;
+                    }
+                    if (format) {
+                        playerData.formatStats[format] = (playerData.formatStats[format] || 0) + 1;
+                    }
+                }
+            });
+
             playerData.recentResults = playerData.recentResults.slice(0, 20);
 
             displayResults();
-            showStatus(`✅ ${playerData.totalEvents} resultados encontrados para ${playerData.username} em todas as páginas!`, 'success');
+            showStatus(`✅ ${playerData.totalEvents} resultados carregados com sucesso!`, 'success');
 
         } catch (error) {
-            if (error.message.includes('Jogador não encontrado') || error.message.includes('Nenhum resultado')) {
-                 showStatus(`❌ Erro: ${error.message}. Verifique se o username está correto.`, 'error');
-            } else {
-                 showStatus(`❌ Erro durante a busca: ${error.message}.`, 'error');
-            }
-            
             const resultsBody = document.getElementById('results-body');
             document.getElementById('recent-results').style.display = 'block';
             resultsBody.innerHTML = `
                 <tr>
                     <td colspan="5" style="text-align: center; padding: 30px;">
-                        <p style="margin-bottom: 15px;">⚠️ Não foi possível acessar automaticamente os dados.</p>
-                        <a href="https://www.mtggoldfish.com/player/${username}" 
-                           target="_blank" 
-                           class="btn btn-primary"
-                           style="display: inline-block;">
+                        <p style="margin-bottom: 15px;">⚠️ Não foi possível carregar automaticamente. Acesse diretamente:</p>
+                        <a href="https://www.mtggoldfish.com/player/${username}" target="_blank" class="btn btn-primary" style="display: inline-block;">
                             Abrir Perfil no MTGGoldfish
                         </a>
                     </td>
                 </tr>
             `;
+            showStatus(`❌ Erro: ${error.message}.`, 'error');
         }
-    }
-
-    const CORS_PROXIES = [
-        (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-        (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-        (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
-        (url) => `https://thingproxy.freeboard.io/fetch/${url}`
-    ];
-
-    async function fetchWithProxyFallback(targetUrl) {
-        let lastError = null;
-
-        for (let i = 0; i < CORS_PROXIES.length; i++) {
-            const proxyUrl = CORS_PROXIES[i](targetUrl);
-            try {
-                const response = await fetch(proxyUrl, { cache: 'no-store' });
-
-                if (!response.ok) {
-                    lastError = new Error(`Proxy retornou status ${response.status}`);
-                    continue;
-                }
-
-                const html = await response.text();
-
-                if (!html || html.length < 500) {
-                    lastError = new Error('Resposta vazia ou muito curta do proxy');
-                    continue;
-                }
-                if (/attention required|checking your browser|cf-browser-verification/i.test(html)) {
-                    lastError = new Error('Bloqueado por proteção anti-bot (Cloudflare)');
-                    continue;
-                }
-                if (!/mtggoldfish/i.test(html)) {
-                    lastError = new Error('Conteúdo retornado não parece ser do MTGGoldfish');
-                    continue;
-                }
-
-                return html;
-            } catch (err) {
-                lastError = err;
-                continue;
-            }
-        }
-
-        throw lastError || new Error('Todos os proxies falharam');
-    }
-
-    async function paginateAndFetch(username, page) {
-        showStatus(`Buscando dados da página ${page}...`, 'loading');
-
-        const url = `https://www.mtggoldfish.com/player/${username}${page > 1 ? `?page=${page}` : ''}`;
-
-        try {
-            const html = await fetchWithProxyFallback(url);
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const rows = doc.querySelectorAll('table tbody tr');
-
-            if (rows.length === 0) {
-                if (page === 1) {
-                    throw new Error('Jogador não encontrado');
-                }
-                console.log(`Nenhum resultado encontrado na página ${page}. Parando paginação.`);
-                return;
-            }
-
-            parsePageResults(doc);
-            await paginateAndFetch(username, page + 1);
-
-        } catch (error) {
-            if (page === 1) {
-                throw error; 
-            }
-            console.log(`Erro ao buscar a página ${page}: ${error.message}. Parando paginação.`);
-        }
-    }
-
-    function parsePageResults(doc) {
-        const rows = doc.querySelectorAll('table tbody tr');
-        
-        rows.forEach(row => {
-            const cells = row.querySelectorAll('td');
-            if (cells.length < 8) return;
-
-            const date = cells[0]?.textContent.trim() || '';
-            const eventName = cells[1]?.textContent.trim() || '';
-            const format = cells[2]?.textContent.trim() || '';
-            
-            // Extrai o nome do deck e o link da decklist (se houver)
-            const deckCell = cells[3];
-            const deckLinkEl = deckCell?.querySelector('a');
-            const deckName = deckCell?.textContent.trim() || '';
-            let deckUrl = deckLinkEl ? deckLinkEl.getAttribute('href') : '';
-            
-            // Torna a URL absoluta caso venha relativa
-            if (deckUrl && deckUrl.startsWith('/')) {
-                deckUrl = `https://www.mtggoldfish.com${deckUrl}`;
-            }
-
-            const finish = cells[4]?.textContent.trim() || '';
-
-            if (date && eventName) {
-                playerData.recentResults.push({
-                    date: date,
-                    event: eventName,
-                    format: format,
-                    deck: deckName,
-                    deckUrl: deckUrl,
-                    placement: finish
-                });
-
-                playerData.totalEvents++;
-
-                const finishLower = finish.toLowerCase();
-                const match = finish.match(/^(\d+)/);
-                const placementNum = match ? parseInt(match[1]) : NaN;
-                
-                if (/\b5\s*-\s*0\b/.test(finishLower)) {
-                    playerData.fiveO++;
-                } else if (!isNaN(placementNum) && placementNum > 0) {
-                    if (placementNum === 1) {
-                        playerData.top1++;
-                    } else if (placementNum <= 8) {
-                        playerData.top8++;
-                    } else if (placementNum <= 16) { 
-                        playerData.top16++;
-                    } else if (placementNum <= 32) {
-                        playerData.top32++;
-                    }
-                }
-
-                if (deckName) {
-                    if (!playerData.deckStats[deckName]) {
-                        playerData.deckStats[deckName] = { count: 0, url: deckUrl };
-                    }
-                    playerData.deckStats[deckName].count++;
-                }
-
-                if (format) {
-                    playerData.formatStats[format] = (playerData.formatStats[format] || 0) + 1;
-                }
-            }
-        });
     }
 
     function displayResults() {
@@ -320,8 +216,8 @@
                 const row = tbody.insertRow();
                 
                 let placementStyle = '';
-                const finishLower = result.placement.toLowerCase();
-                const placementText = result.placement.trim();
+                const finishLower = String(result.placement).toLowerCase();
+                const placementText = String(result.placement).trim();
                 const match = placementText.match(/^(\d+)/);
                 const placementNum = match ? parseInt(match[1]) : NaN;
                 
@@ -339,15 +235,10 @@
                     placementStyle = 'color: #66BB6A;';
                 }
                 
-                // Torna o nome do deck clicável se houver URL válida
-                const deckHtml = result.deckUrl 
-                    ? `<a href="${result.deckUrl}" target="_blank" style="color: #4CAF50; text-decoration: underline;" title="Ver Decklist">${result.deck}</a>`
-                    : `<strong>${result.deck}</strong>`;
-
                 row.innerHTML = `
                     <td>${result.date}</td>
                     <td>${result.event}</td>
-                    <td>${deckHtml}</td>
+                    <td><strong>${result.deck}</strong></td>
                     <td style="${placementStyle}">${result.placement}</td>
                     <td>${result.format}</td>
                 `;
@@ -356,9 +247,7 @@
 
         displayDeckStats();
         displayFormatStats();
-        
         showResults();
-        showStatus(`✅ ${playerData.totalEvents} resultados encontrados para ${playerData.username}!`, 'success');
     }
 
     function displayDeckStats() {
@@ -366,7 +255,7 @@
         deckList.innerHTML = '';
 
         const sortedDecks = Object.entries(playerData.deckStats)
-            .sort((a, b) => b[1].count - a[1].count)
+            .sort((a, b) => b[1] - a[1])
             .slice(0, 10);
 
         if (sortedDecks.length === 0) {
@@ -374,20 +263,12 @@
             return;
         }
 
-        sortedDecks.forEach(([deckName, data]) => {
-            const count = data.count;
-            const deckUrl = data.url;
+        sortedDecks.forEach(([deck, count]) => {
             const percentage = ((count / playerData.totalEvents) * 100).toFixed(1);
-            
             const deckItem = document.createElement('div');
             deckItem.className = 'deck-stat-item';
-
-            const nameHtml = deckUrl 
-                ? `<a href="${deckUrl}" target="_blank" class="deck-name" style="color: #4CAF50; text-decoration: underline;" title="Ver Decklist">${deckName}</a>`
-                : `<span class="deck-name">${deckName}</span>`;
-
             deckItem.innerHTML = `
-                ${nameHtml}
+                <span class="deck-name">${deck}</span>
                 <span class="deck-count">${count} evento(s) (${percentage}%)</span>
             `;
             deckList.appendChild(deckItem);
@@ -569,7 +450,6 @@
         .input-group {
             flex-direction: column;
         }
-
         .stats-grid {
             grid-template-columns: 1fr;
         }
