@@ -60,11 +60,15 @@
         </footer>
     </div>
     <script>
+        // ============================================
+        // PWA INSTALL PROMPT (CORRIGIDO)
+        // ============================================
         let deferredPrompt;
         const installPrompt = document.getElementById('installPrompt');
         const installBtn = document.getElementById('installBtn');
         const dismissBtn = document.getElementById('dismissInstall');
 
+        // Registrar Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/mtg_tools/service-worker.js')
@@ -73,6 +77,7 @@
             });
         }
 
+        // Detectar se é iOS/Safari
         function isIOS() {
             return /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
         }
@@ -81,38 +86,60 @@
             return ('standalone' in window.navigator) && (window.navigator.standalone);
         }
 
+        // Função para verificar se o prompt deve ser mostrado
+        function shouldShowInstallPrompt() {
+            // SEMPRE MOSTRAR O PROMPT
+            return true;
+        }
+
+        // Capturar evento de instalação (Chrome/Edge Android/Desktop)
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
+            
+            // Sempre mostra o prompt
             installPrompt.classList.remove('hidden');
         });
 
+        // Para iOS: Mostrar instruções se não estiver instalado
         window.addEventListener('load', () => {
             if (isIOS() && !isInStandaloneMode()) {
+                // Sempre mostra o prompt no iOS
                 const installContent = installPrompt.querySelector('.install-content');
                 installContent.innerHTML = `
                     <p class="install-title">Instalar como App</p>
                     <p class="install-subtitle">Toque em <span style="font-size: 1.2em;">⎙</span> e depois "Adicionar à Tela Inicial"</p>
                 `;
+                
+                // Remove o botão "Instalar" no iOS (não funciona)
                 installBtn.style.display = 'none';
+                
+                // Mostra o prompt
                 installPrompt.classList.remove('hidden');
             }
         });
 
+        // Botão de instalar (apenas Android/Desktop)
         installBtn.addEventListener('click', async () => {
             if (!deferredPrompt) return;
+            
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
+            console.log(`Usuário ${outcome === 'accepted' ? 'aceitou' : 'recusou'} a instalação`);
+            
             deferredPrompt = null;
             installPrompt.classList.add('hidden');
         });
 
+        // Botão de dispensar (apenas esconde temporariamente)
         dismissBtn.addEventListener('click', () => {
             installPrompt.classList.add('hidden');
         });
 
+        // Esconder banner quando o app já está instalado
         window.addEventListener('appinstalled', () => {
             installPrompt.classList.add('hidden');
+            console.log('PWA instalado com sucesso!');
         });
     </script>
 </body>

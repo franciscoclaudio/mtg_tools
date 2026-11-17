@@ -28,7 +28,7 @@
                 <button onclick="searchPlayer()">Buscar Resultados</button>
             </div>
             <p style="font-size: 0.9em; color: #b8b8b8; margin-top: 10px;">
-                ℹ️ Os dados são extraídos diretamente do MTGGoldfish via API
+                ℹ️ Os dados são extraídos diretamente do MTGGoldfish
             </p>
         </section>
 
@@ -98,7 +98,7 @@
             return;
         }
 
-        showStatus('Buscando dados via API do MTGGoldfish...', 'loading');
+        showStatus('Buscando dados do jogador...', 'loading');
         hideResults();
 
         playerData = {
@@ -115,79 +115,178 @@
         };
         
         try {
-            const targetUrl = `https://www.mtggoldfish.com/player/${username}.json`;
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+            await paginateAndFetch(username, 1);
             
-            const response = await fetch(proxyUrl);
-            if (!response.ok) throw new Error('Jogador não encontrado ou erro na API');
-            
-            const data = await response.json();
-            const results = data.tournament_results || data.results || data;
-            
-            if (!Array.isArray(results) || results.length === 0) {
+            if (playerData.totalEvents === 0) {
                 throw new Error('Nenhum resultado encontrado para este jogador');
             }
-
-            results.forEach(item => {
-                const date = item.date || item.created_at || '';
-                const eventName = item.tournament_name || item.event || '';
-                const format = item.format || '';
-                const deckName = item.deck_name || item.archetype || '';
-                const finish = item.finish || item.placement || '';
-
-                if (date && eventName) {
-                    playerData.recentResults.push({
-                        date: String(date).split('T')[0],
-                        event: eventName,
-                        format: format,
-                        deck: deckName,
-                        placement: finish
-                    });
-
-                    playerData.totalEvents++;
-
-                    const finishLower = String(finish).toLowerCase();
-                    const match = String(finish).match(/^(\d+)/);
-                    const placementNum = match ? parseInt(match[1]) : NaN;
-                    
-                    if (/\b5\s*-\s*0\b/.test(finishLower)) {
-                        playerData.fiveO++;
-                    } else if (!isNaN(placementNum) && placementNum > 0) {
-                        if (placementNum === 1) playerData.top1++;
-                        else if (placementNum <= 8) playerData.top8++;
-                        else if (placementNum <= 16) playerData.top16++;
-                        else if (placementNum <= 32) playerData.top32++;
-                    }
-
-                    if (deckName) {
-                        playerData.deckStats[deckName] = (playerData.deckStats[deckName] || 0) + 1;
-                    }
-                    if (format) {
-                        playerData.formatStats[format] = (playerData.formatStats[format] || 0) + 1;
-                    }
-                }
-            });
-
+            
             playerData.recentResults = playerData.recentResults.slice(0, 20);
 
             displayResults();
-            showStatus(`✅ ${playerData.totalEvents} resultados carregados com sucesso!`, 'success');
+            showStatus(`✅ ${playerData.totalEvents} resultados encontrados para ${playerData.username} em todas as páginas!`, 'success');
 
         } catch (error) {
+            if (error.message.includes('Jogador não encontrado') || error.message.includes('Nenhum resultado')) {
+                 showStatus(`❌ Erro: ${error.message}. Verifique se o username está correto.`, 'error');
+            } else {
+                 showStatus(`❌ Erro durante a busca: ${error.message}.`, 'error');
+            }
+            
             const resultsBody = document.getElementById('results-body');
             document.getElementById('recent-results').style.display = 'block';
             resultsBody.innerHTML = `
                 <tr>
                     <td colspan="5" style="text-align: center; padding: 30px;">
-                        <p style="margin-bottom: 15px;">⚠️ Não foi possível carregar automaticamente. Acesse diretamente:</p>
-                        <a href="https://www.mtggoldfish.com/player/${username}" target="_blank" class="btn btn-primary" style="display: inline-block;">
+                        <p style="margin-bottom: 15px;">⚠️ Não foi possível acessar automaticamente os dados.</p>
+                        <a href="https://www.mtggoldfish.com/player/${username}" 
+                           target="_blank" 
+                           class="btn btn-primary"
+                           style="display: inline-block;">
                             Abrir Perfil no MTGGoldfish
                         </a>
                     </td>
                 </tr>
             `;
-            showStatus(`❌ Erro: ${error.message}.`, 'error');
         }
+    }
+
+    // Lista de proxies CORS públicos, tentados em ordem até um funcionar.
+    // O allorigins.win sozinho é notoriamente instável (falha ~50% das vezes),
+    // então agora tentamos alternativas automaticamente antes de desistir.
+    const CORS_PROXIES = [
+        (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+        (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+        (url) => `https://thingproxy.freeboard.io/fetch/${url}`
+    ];
+
+    async function fetchWithProxyFallback(targetUrl) {
+        let lastError = null;
+
+        for (let i = 0; i < CORS_PROXIES.length; i++) {
+            const proxyUrl = CORS_PROXIES[i](targetUrl);
+            try {
+                const response = await fetch(proxyUrl, { cache: 'no-store' });
+
+                if (!response.ok) {
+                    lastError = new Error(`Proxy retornou status ${response.status}`);
+                    continue;
+                }
+
+                const html = await response.text();
+
+                // Detecta respostas vazias, páginas de bloqueio/challenge do
+                // Cloudflare, ou payloads do proxy que não são HTML de verdade.
+                if (!html || html.length < 500) {
+                    lastError = new Error('Resposta vazia ou muito curta do proxy');
+                    continue;
+                }
+                if (/attention required|checking your browser|cf-browser-verification/i.test(html)) {
+                    lastError = new Error('Bloqueado por proteção anti-bot (Cloudflare)');
+                    continue;
+                }
+                if (!/mtggoldfish/i.test(html)) {
+                    lastError = new Error('Conteúdo retornado não parece ser do MTGGoldfish');
+                    continue;
+                }
+
+                return html; // sucesso
+            } catch (err) {
+                lastError = err;
+                continue;
+            }
+        }
+
+        throw lastError || new Error('Todos os proxies falharam');
+    }
+
+    async function paginateAndFetch(username, page) {
+        showStatus(`Buscando dados da página ${page}...`, 'loading');
+
+        const url = `https://www.mtggoldfish.com/player/${username}${page > 1 ? `?page=${page}` : ''}`;
+
+        try {
+            const html = await fetchWithProxyFallback(url);
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const rows = doc.querySelectorAll('table tbody tr');
+
+            if (rows.length === 0) {
+                if (page === 1) {
+                    throw new Error('Jogador não encontrado');
+                }
+                console.log(`Nenhum resultado encontrado na página ${page}. Parando paginação.`);
+                return;
+            }
+
+            parsePageResults(doc);
+            await paginateAndFetch(username, page + 1);
+
+        } catch (error) {
+            if (page === 1) {
+                throw error; 
+            }
+            console.log(`Erro ao buscar a página ${page}: ${error.message}. Parando paginação.`);
+        }
+    }
+
+    function parsePageResults(doc) {
+        const rows = doc.querySelectorAll('table tbody tr');
+        
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length < 5) return;
+
+            const date = cells[0]?.textContent.trim() || '';
+            const eventName = cells[1]?.textContent.trim() || '';
+            const format = cells[2]?.textContent.trim() || '';
+            const deckName = cells[3]?.textContent.trim() || '';
+            const finish = cells[4]?.textContent.trim() || '';
+
+            if (date && eventName) {
+                playerData.recentResults.push({
+                    date: date,
+                    event: eventName,
+                    format: format,
+                    deck: deckName,
+                    placement: finish
+                });
+
+                playerData.totalEvents++;
+
+                const finishLower = finish.toLowerCase();
+                
+                // Extrai o número completo (ex: "12th" -> 12, "1st" -> 1)
+                const match = finish.match(/^(\d+)/);
+                const placementNum = match ? parseInt(match[1]) : NaN;
+                
+                // Verifica 5-0 primeiro (prioridade)
+                if (/\b5\s*-\s*0\b/.test(finishLower)) {
+                    playerData.fiveO++;
+                } 
+                // Verifica colocações numéricas
+                else if (!isNaN(placementNum) && placementNum > 0) {
+                    if (placementNum === 1) {
+                        playerData.top1++;
+                    } else if (placementNum <= 8) {
+                        playerData.top8++;
+                    } else if (placementNum <= 16) { 
+                        playerData.top16++;
+                    } else if (placementNum <= 32) {
+                        playerData.top32++;
+                    }
+                }
+
+                if (deckName) {
+                    playerData.deckStats[deckName] = (playerData.deckStats[deckName] || 0) + 1;
+                }
+
+                if (format) {
+                    playerData.formatStats[format] = (playerData.formatStats[format] || 0) + 1;
+                }
+            }
+        });
     }
 
     function displayResults() {
@@ -216,22 +315,35 @@
                 const row = tbody.insertRow();
                 
                 let placementStyle = '';
-                const finishLower = String(result.placement).toLowerCase();
-                const placementText = String(result.placement).trim();
+                const finishLower = result.placement.toLowerCase();
+                const placementText = result.placement.trim();
+                
+                // Extrai o número completo da colocação
                 const match = placementText.match(/^(\d+)/);
                 const placementNum = match ? parseInt(match[1]) : NaN;
                 
+                // Verifica se é 5-0
                 if (/\b5\s*-\s*0\b/i.test(finishLower)) {
                     placementStyle = 'color: #4CAF50; font-weight: bold;';
-                } else if (placementNum === 1) {
+                }
+                // 1º lugar - VERIFICA NÚMERO EXATO
+                else if (placementNum === 1) {
                     placementStyle = 'color: #FFD700; font-weight: bold;';
-                } else if (placementNum === 2) {
+                }
+                // 2º lugar - VERIFICA NÚMERO EXATO
+                else if (placementNum === 2) {
                     placementStyle = 'color: #C0C0C0; font-weight: bold;';
-                } else if (placementNum === 3) {
+                }
+                // 3º lugar - VERIFICA NÚMERO EXATO
+                else if (placementNum === 3) {
                     placementStyle = 'color: #CD7F32; font-weight: bold;';
-                } else if (!isNaN(placementNum) && placementNum >= 4 && placementNum <= 8) {
+                }
+                // 4º-8º lugar (Top 8)
+                else if (!isNaN(placementNum) && placementNum >= 4 && placementNum <= 8) {
                     placementStyle = 'color: #4CAF50; font-weight: bold;';
-                } else if (!isNaN(placementNum) && placementNum >= 9 && placementNum <= 16) {
+                }
+                // 9º-16º lugar (Top 16)
+                else if (!isNaN(placementNum) && placementNum >= 9 && placementNum <= 16) {
                     placementStyle = 'color: #66BB6A;';
                 }
                 
@@ -247,7 +359,9 @@
 
         displayDeckStats();
         displayFormatStats();
+        
         showResults();
+        showStatus(`✅ ${playerData.totalEvents} resultados encontrados para ${playerData.username}!`, 'success');
     }
 
     function displayDeckStats() {
@@ -450,6 +564,7 @@
         .input-group {
             flex-direction: column;
         }
+
         .stats-grid {
             grid-template-columns: 1fr;
         }
