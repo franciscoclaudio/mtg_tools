@@ -1,22 +1,25 @@
 {
-  "name": "MTG_TOOLS",
-  "short_name": "MTG TOOLS",
-  "description": "Conjunto profissional de ferramentas para jogadores competitivos de Magic",
-  "start_url": "/mtg_tools/Ferramentas_MTG.html",
+  "name": "MTG Tools Mobile",
+  "short_name": "MTG Tools",
+  "description": "Tracker de partidas, calculadora hipergeométrica e ferramentas MTGO.",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#1a1a2e",
-  "theme_color": "#4f46e5",
+  "background_color": "#121212",
+  "theme_color": "#121212",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/mtg_tools/img/icon.png",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/mtg_tools/img/icon.png",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

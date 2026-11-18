@@ -2,306 +2,308 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎴 Ferramentas MTG - Suíte Completa v5.0</title>
-    <link rel="stylesheet" href="/mtg_tools/styles/main_style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#121212">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Metatags PWA e iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MTG Tools">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>MTG Tools Mobile</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles/app_mobile.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="app.js" defer></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🎴 Ferramentas MTG</h1>
-            <p>Suíte Completa de Ferramentas v5.0</p>
-            <p style="margin-top: 10px; font-size: 0.95em;">Conjunto profissional de ferramentas para jogadores competitivos de Magic: The Gathering, com foco em análise estatística, rastreamento de partidas e cálculos de probabilidade.</p>
-        </header>
 
-        <nav>
-            <ul>
-                <li><a href="/mtg_tools/Ferramentas_MTG.html">🏠 Menu Principal</a></li>
-                <li><a href="/mtg_tools/Deck_Tracker_V3.html">📊 Deck Stats Tracker</a></li>
-                <li><a href="/mtg_tools/Calculadora_MTG.html">🧮 Calculadora de Probabilidade</a></li>
-                <li><a href="/mtg_tools/Mtgo_Results.html">🏆 MTGO Results</a></li>
-                <li><a href="/mtg_tools/Matchup_Matrix.html">📊 Matchup Matrix</a></li>
-            </ul>
-        </nav>
+    <!-- TOP APP BAR -->
+    <header class="top-bar">
+        <button class="context-chip" onclick="openSheet('sheet-context')">
+            <span class="chip-icon">👤</span>
+            <span id="header-context-text">Selecionar Usuário / Deck</span>
+            <span class="chip-arrow">▾</span>
+        </button>
+        <button class="icon-btn" onclick="openSheet('sheet-settings')" aria-label="Configurações">
+            ⚙️
+        </button>
+    </header>
 
-        <main>
-            <!-- TABELA DE FERRAMENTAS -->
-            <section id="ferramentas">
-                <h2>📋 Ferramentas Disponíveis</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Ferramenta</th>
-                            <th>Link de Acesso</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>🏠 Menu Principal</td>
-                            <td><a href="/mtg_tools/Ferramentas_MTG.html">Ferramentas_MTG.html</a></td>
-                            <td>Página inicial com documentação e navegação</td>
-                        </tr>
-                        <tr>
-                            <td>📊 Deck Stats Tracker</td>
-                            <td><a href="/mtg_tools/Deck_Tracker_V3.html">Deck_Tracker_V3.html</a></td>
-                            <td>Sistema completo de rastreamento multi-usuário e multi-formato com sincronização Firebase</td>
-                        </tr>
-                        <tr>
-                            <td>🧮 Calculadora de Probabilidade</td>
-                            <td><a href="/mtg_tools/Calculadora_MTG.html">Calculadora_MTG.html</a></td>
-                            <td>Calculadora hipergeométrica para probabilidades de draw</td>
-                        </tr>
-                                                <tr>
-                            <td>🧮 Calculadora de Probabilidade</td>
-                            <td><a href="/mtg_tools/Mtgo_Results.html">Mtgo_Results.html</a></td>
-                            <td>🏆 MTGO Results</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
+    <!-- MAIN CONTENT AREA -->
+    <main class="app-content">
 
-            <!-- SOBRE AS FERRAMENTAS -->
-            <section id="sobre">
-                <h2>📖 Sobre as Ferramentas</h2>
-                <p>As Ferramentas MTG são um conjunto de aplicações web projetadas para auxiliar jogadores de Magic: The Gathering em:</p>
-                <ul>
-                    <li>✅ <strong>Análise de Desempenho:</strong> Rastreie win rates por deck, matchup e games individuais</li>
-                    <li>✅ <strong>Decisões Informadas:</strong> Calcule probabilidades de draws para otimizar sequências</li>
-                    <li>✅ <strong>Sincronização Multi-Dispositivo:</strong> Acesse seus dados de qualquer lugar via Firebase</li>
-                    <li>✅ <strong>Suporte Multi-Formato:</strong> Modern, Pioneer, Legacy, Standard e Pauper</li>
-                </ul>
-            </section>
+        <!-- ABA 1: DECK TRACKER -->
+        <section id="tab-tracker" class="tab-view active">
+            <div id="tracker-status" class="status-pill info">Conectando ao Firebase...</div>
 
-            <!-- GUIA RÁPIDO: DECK STATS TRACKER -->
-            <section id="guia-tracker">
-                <h2>📊 Guia Rápido: Deck Stats Tracker v3.0</h2>
-                <p class="alert alert-info">A versão 3.0 representa uma reformulação completa do sistema de rastreamento com suporte multi-usuário, multi-formato e sincronização em nuvem.</p>
-
-                <h3>🔑 Passo 1: Login/Registro</h3>
-                <ol>
-                    <li>Acesse o <a href="/mtg_tools/Deck_Tracker_V3.html">Deck Stats Tracker</a></li>
-                    <li>Selecione seu nome no dropdown <strong>"Selecione o Usuário"</strong></li>
-                    <li>→ Ou clique em <strong>"--- Novo Usuário ---"</strong> para se registrar</li>
-                    <li>Aguarde o carregamento dos dados do Firebase</li>
-                </ol>
-
-                <h3>🎯 Passo 2: Configuração Inicial</h3>
-                <ol>
-                    <li>Selecione o <strong>FORMATO</strong> que deseja jogar (ex: Modern)</li>
-                    <li>Selecione seu <strong>DECK ATUAL</strong></li>
-                    <li>→ Use <strong>"--- Criar Novo Deck ---"</strong> se necessário</li>
-                    <li>Pronto! O sistema está configurado</li>
-                </ol>
-
-                <h3>⚔️ Passo 3: Registrar Partidas</h3>
-                <ol>
-                    <li>Selecione o deck do <strong>OPONENTE</strong>
-                        <ul>
-                            <li>→ Lista pré-carregada do metagame do formato</li>
-                            <li>→ Use <strong>"--- Nova Matchup (Manual) ---"</strong> para decks fora da lista</li>
-                        </ul>
-                    </li>
-                    <li>Registre os resultados:
-                        <ul>
-                            <li>Game 1: Vitória/Derrota</li>
-                            <li>Game 2: Vitória/Derrota</li>
-                            <li>Game 3: Não Jogou / Vitória / Derrota</li>
-                        </ul>
-                    </li>
-                    <li>Clique em <strong>"Registrar Partida"</strong></li>
-                    <li>✅ Dados salvos automaticamente no Firebase!</li>
-                </ol>
-
-                <h3>📈 Passo 4: Visualizar Estatísticas</h3>
-                <div class="feature-box">
-                    <h4>📊 Estatísticas Gerais:</h4>
-                    <p>Visão macro do desempenho do deck selecionado com win rates totais e por game.</p>
+            <div class="card hero-card">
+                <div class="hero-header">
+                    <span class="card-label">MATCH WIN RATE</span>
+                    <span class="badge" id="match-count-geral">0 partidas</span>
                 </div>
-                <div class="feature-box">
-                    <h4>🎯 Estatísticas por Matchup:</h4>
-                    <p>Dropdown "Selecione um Matchup para ver as Stats" - Veja seu desempenho específico contra cada arquétipo e identifique seus melhores e piores matchups.</p>
+                <div class="hero-value" id="wr-match-geral">--%</div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="wr-match-bar" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="card metric-card">
+                    <span class="card-label">GAME WR</span>
+                    <span class="metric-value" id="wr-game-geral">--%</span>
+                </div>
+                <div class="card metric-card">
+                    <span class="card-label">PLAY / DRAW</span>
+                    <span class="metric-value small">
+                        <span id="wr-play-geral" class="text-win">--%</span> /
+                        <span id="wr-draw-geral" class="text-muted">--%</span>
+                    </span>
+                </div>
+                <div class="card metric-card">
+                    <span class="card-label">GAME 1 WR</span>
+                    <span class="metric-value" id="wr-g1-geral">--%</span>
+                </div>
+                <div class="card metric-card">
+                    <span class="card-label">G2 / G3 WR</span>
+                    <span class="metric-value small">
+                        <span id="wr-g2-geral">--%</span> /
+                        <span id="wr-g3-geral">--%</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <h3>Desempenho por Matchup</h3>
+            </div>
+            <div id="matchup-list" class="matchup-list">
+                <div class="empty-state">Selecione um deck para visualizar suas matchups.</div>
+            </div>
+
+            <button id="fab-new-match" class="fab" onclick="openMatchModal()" disabled>
+                <span>+</span> Partida
+            </button>
+        </section>
+
+        <!-- ABA 2: CALCULADORA HIPERGEOMÉTRICA -->
+        <section id="tab-calc" class="tab-view">
+            <div class="card calc-hero">
+                <div class="calc-result-main">
+                    <span class="card-label" id="calc-label-atleast">CHANCE DE PELO MENOS 1 OUT</span>
+                    <div class="hero-value text-accent" id="calc-res-atleast">39.95%</div>
+                </div>
+                <div class="calc-result-sub">
+                    <span>Exatamente <strong id="calc-label-exact-n">1</strong>:</span>
+                    <strong id="calc-res-exact">33.42%</strong>
+                </div>
+            </div>
+
+            <div class="calc-controls">
+                <div class="card stepper-card">
+                    <div class="stepper-info">
+                        <label for="popSize">Cartas no Deck</label>
+                        <div class="preset-row">
+                            <button type="button" class="preset-btn" onclick="setCalcVal('popSize', 60)">60</button>
+                            <button type="button" class="preset-btn" onclick="setCalcVal('popSize', 40)">40</button>
+                            <button type="button" class="preset-btn" onclick="setCalcVal('popSize', 99)">99</button>
+                        </div>
+                    </div>
+                    <div class="stepper-box">
+                        <button type="button" class="step-btn" onclick="stepCalcVal('popSize', -1)">−</button>
+                        <input type="number" inputmode="numeric" id="popSize" value="60" oninput="runCalculations()">
+                        <button type="button" class="step-btn" onclick="stepCalcVal('popSize', 1)">+</button>
+                    </div>
                 </div>
 
-                <h3>💾 Importar/Exportar Dados</h3>
-                <h4>💾 Exportar:</h4>
-                <ul>
-                    <li>Clique em <strong>"Exportar Dados"</strong></li>
-                    <li>Baixa arquivo JSON com TODOS os seus dados (todos formatos e decks)</li>
-                </ul>
-                <h4>📥 Importar:</h4>
-                <ul>
-                    <li>Clique em <strong>"Importar Dados"</strong></li>
-                    <li>Selecione arquivo JSON</li>
-                    <li>Sistema migra automaticamente estruturas antigas</li>
-                    <li>Dados são ADICIONADOS aos existentes (não sobrescreve)</li>
-                </ul>
-            </section>
+                <div class="card stepper-card">
+                    <div class="stepper-info">
+                        <label for="sampleSize">Cartas Compradas (Draws)</label>
+                        <div class="preset-row">
+                            <button type="button" class="preset-btn" onclick="setCalcVal('sampleSize', 7)">Mão (7)</button>
+                            <button type="button" class="preset-btn" onclick="setCalcVal('sampleSize', 8)">T1 Draw (8)</button>
+                            <button type="button" class="preset-btn" onclick="stepCalcVal('sampleSize', 1)">+1 Turno</button>
+                        </div>
+                    </div>
+                    <div class="stepper-box">
+                        <button type="button" class="step-btn" onclick="stepCalcVal('sampleSize', -1)">−</button>
+                        <input type="number" inputmode="numeric" id="sampleSize" value="7" oninput="runCalculations()">
+                        <button type="button" class="step-btn" onclick="stepCalcVal('sampleSize', 1)">+</button>
+                    </div>
+                </div>
 
-            <!-- CALCULADORA DE PROBABILIDADE -->
-            <section id="guia-calculadora">
-                <h2>🧮 Guia Rápido: Calculadora de Probabilidade</h2>
-                <p>Calcula a probabilidade de você comprar um número específico de "outs" (cartas desejadas) em uma determinada quantidade de draws.</p>
+                <div class="card stepper-card">
+                    <div class="stepper-info">
+                        <label for="successesInPop">Cópias no Deck (Outs)</label>
+                        <div class="preset-row">
+                            <button type="button" class="preset-btn" onclick="setCalcVal('successesInPop', 4)">4x</button>
+                            <button type="button" class="preset-btn" onclick="setCalcVal('successesInPop', 8)">8x</button>
+                            <button type="button" class="preset-btn" onclick="setCalcVal('successesInPop', 24)">24 Lands</button>
+                        </div>
+                    </div>
+                    <div class="stepper-box">
+                        <button type="button" class="step-btn" onclick="stepCalcVal('successesInPop', -1)">−</button>
+                        <input type="number" inputmode="numeric" id="successesInPop" value="4" oninput="runCalculations()">
+                        <button type="button" class="step-btn" onclick="stepCalcVal('successesInPop', 1)">+</button>
+                    </div>
+                </div>
 
-                <h3>🎯 Casos de Uso Comuns:</h3>
-                <ul>
-                    <li>✅ <strong>Abertura de Mão:</strong> "Qual a chance de ter pelo menos 1 Amulet of Vigor na mão inicial?"</li>
-                    <li>✅ <strong>Sequência de Jogo:</strong> "Até o turno 4, qual a chance de ter visto 2+ terrenos bounce?"</li>
-                    <li>✅ <strong>Sideboard:</strong> "Quantas cópias preciso para ter 80%+ de ver pelo menos 1?"</li>
-                </ul>
+                <div class="card stepper-card">
+                    <div class="stepper-info">
+                        <label for="successesNeeded">Sucessos Necessários</label>
+                        <div class="preset-row">
+                            <button type="button" class="preset-btn" onclick="setCalcVal('successesNeeded', 1)">1</button>
+                            <button type="button" class="preset-btn" onclick="setCalcVal('successesNeeded', 2)">2</button>
+                            <button type="button" class="preset-btn" onclick="setCalcVal('successesNeeded', 3)">3</button>
+                        </div>
+                    </div>
+                    <div class="stepper-box">
+                        <button type="button" class="step-btn" onclick="stepCalcVal('successesNeeded', -1)">−</button>
+                        <input type="number" inputmode="numeric" id="successesNeeded" value="1" oninput="runCalculations()">
+                        <button type="button" class="step-btn" onclick="stepCalcVal('successesNeeded', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                <h3>📝 Como Usar:</h3>
-                <ol>
-                    <li><strong>Cartas no deck:</strong> 60 (ou 99 para Commander)</li>
-                    <li><strong>Quantos draws:</strong> 7 (mão inicial) ou mais (com mulligans/draws)</li>
-                    <li><strong>Quantos Outs:</strong> Número de cópias no deck</li>
-                    <li><strong>Sucessos necessários:</strong> Quantos você PRECISA ver (mínimo)</li>
-                    <li>Clique em <strong>"Calcular"</strong></li>
-                </ol>
-            </section>
+        <!-- ABA 3: MTGO RESULTS -->
+        <section id="tab-mtgo" class="tab-view">
+            <div class="card">
+                <label class="card-label" for="mtgo-username-input">USERNAME DO MTGO</label>
+                <div class="search-bar">
+                    <input type="text" id="mtgo-username-input" placeholder="Ex: claudio0907" autocomplete="off" autocorrect="off" autocapitalize="none">
+                    <button type="button" class="btn-primary" onclick="searchMtgoPlayer()">Buscar</button>
+                </div>
+                <p class="helper-text">
+                    Abre o perfil oficial no MTGGoldfish para contornar a proteção Cloudflare com segurança.
+                </p>
+            </div>
 
-            <!-- ESTRUTURA DO PROJETO -->
-            <section id="estrutura">
-                <h2>📁 Estrutura do Projeto</h2>
-                <pre><code>mtg_tools/
-│
-├── 📄 Ferramentas_MTG.html     # Menu principal de navegação
-├── 📄 Deck_Tracker_V3.html     # Tracker multi-usuário/formato
-├── 📄 Calculadora_mtg.html     # Calculadora hipergeométrica
-├── 📄 README.md                # Documentação
-│
-├── 📂 styles/                  # Arquivos CSS
-│   ├── Ferramentas_MTG_styles.css
-│   ├── Deck_Tracker_styles.css
-│   └── Calculadora_MTG_styles.css
-│
-└── 📂 img/                     # Imagens de fundo
-    ├── amulet_of_vigor.jpg
-    ├── tireless_tracker.jpg
-    ├── laboratory_manic.jpg
-    ├── solve_equation.jpg
-    ├── eureka.jpg
-    └── dissection_tools.jpg</code></pre>
-            </section>
+            <div class="section-header">
+                <h3>Histórico Rápido</h3>
+                <button class="text-btn" onclick="clearMtgoHistory()">Limpar</button>
+            </div>
+            <div id="mtgo-history-chips" class="chips-container"></div>
+        </section>
 
-            <!-- COMO USAR -->
-            <section id="como-usar">
-                <h2>🚀 Como Usar</h2>
-                
-                <h3>💻 Online (Recomendado)</h3>
-                <p>Simplesmente acesse via GitHub Pages - não requer instalação!</p>
-                <a href="https://franciscoclaudio.github.io/mtg_tools/" class="btn btn-primary">🌐 Acessar Online</a>
+    </main>
 
-                <h3>📦 Local</h3>
-                <pre><code># Clone o repositório
-git clone https://github.com/franciscoclaudio/mtg_tools.git
+    <nav class="bottom-nav">
+        <button class="nav-item active" data-target="tab-tracker" onclick="switchTab('tab-tracker', this)">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Tracker</span>
+        </button>
+        <button class="nav-item" data-target="tab-calc" onclick="switchTab('tab-calc', this)">
+            <span class="nav-icon">🧮</span>
+            <span class="nav-label">Calculadora</span>
+        </button>
+        <button class="nav-item" data-target="tab-mtgo" onclick="switchTab('tab-mtgo', this)">
+            <span class="nav-icon">🏆</span>
+            <span class="nav-label">MTGO</span>
+        </button>
+    </nav>
 
-# Entre na pasta
-cd mtg_tools
+    <div id="sheet-backdrop" class="backdrop" onclick="closeAllSheets()"></div>
 
-# Abra o arquivo principal no navegador
-# Windows
-start Ferramentas_MTG.html
+    <!-- SHEET: CONTEXTO -->
+    <div id="sheet-context" class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <h3>Selecionar Usuário e Deck</h3>
 
-# macOS
-open Ferramentas_MTG.html
+        <div class="form-group">
+            <label>Usuário</label>
+            <select id="user-select" class="mobile-select"></select>
+            <div id="novo-usuario-container" class="inline-create" style="display: none;">
+                <input type="text" id="novo-usuario-input" placeholder="Nome do novo usuário">
+                <button type="button" class="btn-primary" onclick="setNovoUsuario()">Criar</button>
+            </div>
+        </div>
 
-# Linux
-xdg-open Ferramentas_MTG.html</code></pre>
+        <div class="form-group">
+            <label>Formato</label>
+            <select id="current-format-select" class="mobile-select" disabled></select>
+        </div>
 
-                <h3>🌐 Servidor Local (Opcional)</h3>
-                <pre><code># Python 3
-python -m http.server 8000
+        <div class="form-group">
+            <label>Seu Deck Atual</label>
+            <select id="current-deck-select" class="mobile-select" disabled></select>
+            <div id="novo-deck-container" class="inline-create" style="display: none;">
+                <input type="text" id="novo-deck-input" placeholder="Ex: Boros Energy">
+                <!-- O botão "Criar" foi removido. A criação ocorre no botão "Concluído" abaixo. -->
+            </div>
+        </div>
 
-# Acesse: http://localhost:8000/Ferramentas_MTG.html</code></pre>
-            </section>
-
-            <!-- TECNOLOGIAS -->
-            <section id="tecnologias">
-                <h2>🛠️ Tecnologias Utilizadas</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Tecnologia</th>
-                            <th>Uso</th>
-                            <th>Versão</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>HTML5</td>
-                            <td>Estrutura das páginas</td>
-                            <td>-</td>
-                        </tr>
-                        <tr>
-                            <td>CSS3</td>
-                            <td>Estilização e layout</td>
-                            <td>-</td>
-                        </tr>
-                        <tr>
-                            <td>JavaScript (Vanilla)</td>
-                            <td>Lógica e interatividade</td>
-                            <td>ES6+</td>
-                        </tr>
-                        <tr>
-                            <td>Firebase Realtime Database</td>
-                            <td>Sincronização de dados</td>
-                            <td>9.6.1</td>
-                        </tr>
-                        <tr>
-                            <td>GitHub Pages</td>
-                            <td>Hospedagem estática</td>
-                            <td>-</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <h3>🎯 Por que essas tecnologias?</h3>
-                <ul>
-                    <li>✅ <strong>Sem frameworks:</strong> Carregamento rápido, sem dependências pesadas</li>
-                    <li>✅ <strong>Firebase:</strong> Sincronização em tempo real sem backend próprio</li>
-                    <li>✅ <strong>GitHub Pages:</strong> Hospedagem gratuita, confiável e com HTTPS</li>
-                    <li>✅ <strong>Vanilla JS:</strong> Máxima compatibilidade e performance</li>
-                </ul>
-            </section>
-
-            <!-- CONTRIBUINDO -->
-            <section id="contribuindo">
-                <h2>🤝 Como Contribuir</h2>
-                <p>Contribuições são bem-vindas! Siga estas etapas:</p>
-                <ol>
-                    <li>Faça um Fork do projeto</li>
-                    <li>Crie uma branch para sua feature (<code>git checkout -b feature/NovaFuncionalidade</code>)</li>
-                    <li>Commit suas mudanças (<code>git commit -m 'Adiciona nova funcionalidade X'</code>)</li>
-                    <li>Push para a branch (<code>git push origin feature/NovaFuncionalidade</code>)</li>
-                    <li>Abra um Pull Request</li>
-                </ol>
-            </section>
-
-            <!-- LICENÇA -->
-            <section id="licenca">
-                <h2>📜 Licença</h2>
-                <p>Este projeto está sob a licença MIT. Veja o arquivo <code>LICENSE</code> para mais detalhes.</p>
-            </section>
-
-            <!-- CONTATO -->
-            <section id="contato">
-                <h2>📧 Contato</h2>
-                <p><strong>Francisco Claudio</strong></p>
-                <p>GitHub: <a href="https://github.com/franciscoclaudio">@franciscoclaudio</a></p>
-            </section>
-
-            <!-- DISCLAIMER -->
-            <section id="disclaimer">
-                <h2>⚖️ Disclaimer</h2>
-                <p class="alert alert-warning">Este projeto não é afiliado, endossado ou patrocinado pela Wizards of the Coast LLC. Magic: The Gathering é uma marca registrada da Wizards of the Coast LLC.</p>
-            </section>
-        </main>
-
-        <footer>
-            <p>🎴 Ferramentas MTG v5.0 - Desenvolvido por <a href="https://github.com/franciscoclaudio">Francisco Claudio</a></p>
-            <p>&copy; 2024 - Licença MIT</p>
-        </footer>
+        <!-- Botão que salva a seleção ou cria o novo deck -->
+        <button type="button" class="btn-secondary full-width" onclick="salvarContexto()">Concluído</button>
     </div>
+
+    <!-- SHEET: NOVA PARTIDA -->
+    <div id="sheet-match" class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <h3>Registrar Partida</h3>
+
+        <form id="matchup-form">
+            <div class="form-group">
+                <label>Deck Oponente</label>
+                <select id="deck-oponente-select" class="mobile-select" required></select>
+                <div id="nova-matchup-container" class="inline-create" style="display: none;">
+                    <input type="text" id="nova-matchup-input" placeholder="Nome do deck oponente">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Início da Partida</label>
+                <div class="segmented-control" id="play-draw-group">
+                    <button type="button" class="seg-btn active" data-val="play" onclick="selectSeg('play-draw-group', this)">On the Play</button>
+                    <button type="button" class="seg-btn" data-val="draw" onclick="selectSeg('play-draw-group', this)">On the Draw</button>
+                </div>
+                <input type="hidden" id="play-draw-value" value="play">
+            </div>
+
+            <div class="games-grid">
+                <div class="game-row">
+                    <span>Game 1</span>
+                    <div class="segmented-control compact" id="g1-group">
+                        <button type="button" class="seg-btn win" data-val="win" onclick="selectGame(1, 'win', this)">W</button>
+                        <button type="button" class="seg-btn loss" data-val="loss" onclick="selectGame(1, 'loss', this)">L</button>
+                    </div>
+                </div>
+
+                <div class="game-row">
+                    <span>Game 2</span>
+                    <div class="segmented-control compact" id="g2-group">
+                        <button type="button" class="seg-btn win" data-val="win" onclick="selectGame(2, 'win', this)">W</button>
+                        <button type="button" class="seg-btn loss" data-val="loss" onclick="selectGame(2, 'loss', this)">L</button>
+                    </div>
+                </div>
+
+                <div class="game-row">
+                    <span>Game 3</span>
+                    <div class="segmented-control compact" id="g3-group">
+                        <button type="button" class="seg-btn active" data-val="not_played" onclick="selectGame(3, 'not_played', this)">—</button>
+                        <button type="button" class="seg-btn win" data-val="win" onclick="selectGame(3, 'win', this)">W</button>
+                        <button type="button" class="seg-btn loss" data-val="loss" onclick="selectGame(3, 'loss', this)">L</button>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary full-width btn-lg">Salvar Partida</button>
+        </form>
+    </div>
+
+    <!-- SHEET: CONFIGURAÇÕES -->
+    <div id="sheet-settings" class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <h3>Backup & Utilitários</h3>
+        <p class="helper-text">Exporte ou restaure o histórico completo do usuário atual em formato JSON.</p>
+        <div class="settings-actions">
+            <button type="button" id="export-btn" class="btn-secondary full-width" onclick="exportData()" disabled>📤 Exportar Dados (JSON)</button>
+            <input type="file" id="file-input" accept=".json" style="display: none;">
+            <button type="button" id="import-btn" class="btn-secondary full-width" onclick="document.getElementById('file-input').click()" disabled>📥 Importar Dados (JSON)</button>
+        </div>
+    </div>
+
 </body>
 </html>

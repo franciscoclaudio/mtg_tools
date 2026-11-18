@@ -1,0 +1,8 @@
+{
+  "Standard": ["Mono-Green Landfall", "Jund Sacrifice", "Dimir Midrange", "Dimir Reanimator", "Lifegain", "Azorius Control", "Izzet Spellementals", "4c Control", "Jeskai Artifacts", "Azorius Momo", "Boros Dwarves", "Boros Dragons", "Selesnya Landfall", "Dimir Control", "Izzet Prowess"],
+  "Premodern": ["Selesnya Enchantress", "Mono-Blue Stiflenought", "Mono-Black Midrange", "Mono-Red Sligh", "Azorius Stiflenought", "Naya Terragedon", "Psychatog", "Mono-White", "The Rock", "Mono-Blue", "Gruul Goblins", "Azorius Replenish", "5c Hermit Druid", "Elves", "Orzhov Control"],
+  "Pioneer": ["Golgari Midrange", "Nykthos Ramp", "Mono-Red Prowess", "Selesnya Company", "Azorius Control", "Izzet Aggro", "Abzan Greasefang", "Izzet Prowess", "Izzet Phoenix", "Jund Sacrifice", "Temur Lessons", "Orzhov Midrange", "Boros Aggro", "Mono-White Humans", "Bant Scapeshift"],
+  "Pauper": ["Mono Red Madness", "Blue Terror", "Dimir Faeries", "Ruby Storm", "Tron", "Bogles", "Spy Combo", "Elves", "Grixis Affinity", "Mono Red Rally", "Esper Affinity", "Boros Moxite", "Grixis Control", "Dimir Control", "Jund Wildfire"],
+  "Modern": ["Eldrazi Ramp", "Affinity", "Amulet Titan", "Boros Energy", "Izzet Prowess", "Rakdos Midrange", "Ruby Storm", "Eldrazi Tron", "Domain Zoo", "Jeskai Energy", "Living End", "Esper Blink", "Goryo's Vengeance", "Eldrazi", "Dimir Midrange"],
+  "Legacy": ["Hogaak Tempo", "Izzet Delver", "Dimir Tempo", "Lands", "Doomsday", "Aluren", "Boros Energy", "Beanstalk Control (Non-Yorion)", "Eldrazi", "Sneak and Show", "Sewer-Cam Combo", "Death and Taxes (Yorion) - Black/White", "Mystic Forge Combo", "Rakdos Reanimator", "Tron"]
+}
